@@ -7,8 +7,9 @@ const memorySizeCommand = 'sysctl -n hw.memsize'
 const unitDivisor = 1048576 //MB
 
 class Stats {
-  constructor(interval = 2000) {
+  constructor(emitEvent, interval = 2000) {
     this.interval = interval
+    this.emitEvent = emitEvent
   }
   setImageManager(imageManager) {
     this.imageManager = imageManager
@@ -97,6 +98,8 @@ class Stats {
    */
   async updateStats() {
     const results = await this.getAll()
+
+    this.emitEvent('stats-updated', results)
 
     //TODO available icons as parameter
     let iconOpts = [
