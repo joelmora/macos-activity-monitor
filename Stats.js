@@ -98,13 +98,10 @@ class Stats {
   async updateStats() {
     const results = await this.getAll()
 
-    // console.log('memory%: ', results.memory.percentage.used)
-    console.log('memory%: ', results.cpu.percentage.used)
-
-    //TODO available icons as paramter
+    //TODO available icons as parameter
     let iconOpts = [
-      // { attr: 'mem', value: results.memory.percentage.used, unit: 'percentage' }
-      { attr: 'cpu', value: results.memory.percentage.used, unit: 'percentage' }
+      { attr: 'mem', value: results.memory.percentage.used, unit: 'percentage' },
+      { attr: 'cpu', value: results.cpu.percentage.used, unit: 'percentage' },
     ]
 
     //draw the icon

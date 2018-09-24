@@ -8,6 +8,7 @@ class ImageManager {
 
     this.allImages = [
       { type: 'blank', src: '/icons/blank.png' },
+      { type: 'space', src: '/icons/space.png' },
       { type: 'mem', src: '/icons/mem.png' },
       { type: 'cpu', src: '/icons/cpu.png' },
       { type: 'percentage', src: '/icons/%.png' },
@@ -24,8 +25,7 @@ class ImageManager {
     ]
   }
   getJimp(type) {
-    console.log('type', type)
-    return this.allImages.find(img => img.type === type).jimp
+    return this.allImages.find(img => img.type === type).jimp.clone()
   }
   findByType(type) {
     return this.allImages.find(img => img.type === type)
@@ -56,16 +56,13 @@ class ImageManager {
     return this.getImages(index + 1)
   }
   /**
-   * Creates an image part by part and draw it on the menubar
+   * Compact Version = title and % value vertically
    * @param {*} icons 
    */
-  async drawIcon(icons) {
-
-    //TODO allow multiples icons
-    await icons.map(async icon => {
+  async getCompactVersionIcons(icons) {
+    return await icons.map(async icon => {
       let numbers = icon.value.toString().split('')
 
-      //compact version
       const blank = this.getJimp('blank')
       const title = this.getJimp(icon.attr)
 
@@ -89,7 +86,6 @@ class ImageManager {
       })
 
       //add the unit (%, MB, etc)
-      let finishedComposite
       let unitImg
 
       switch (icon.unit) {
@@ -98,17 +94,48 @@ class ImageManager {
           break
       }
 
-      finishedComposite = await backWNumbers.composite(unitImg, x, y)
-
-      //get image buffer
-      const imgBuffer = await util.promisify(finishedComposite.getBuffer.bind(finishedComposite))('image/png')
-
-      //set icon on tray
-      let electronImage = nativeImage.createFromBuffer(imgBuffer)
-      //FIXME replace icon with a new image every time
-      this.setTrayImage(electronImage)
+      return await backWNumbers.composite(unitImg, x, y)
     })
+  }
+  /**
+   * Creates an image part by part and draw it on the menubar
+   * @param {*} icons 
+   */
+  async drawIcon(icons) {
 
+    let iconImages = []
+    iconImages = await this.getCompactVersionIcons(icons)
+
+    //grab all icons (cpu, mem, etc) and merge into one image
+    let totalWidth = iconImages.length * 26 + (iconImages.length - 1) * 5
+    let finalIcon = await new Jimp(totalWidth, 22)
+    let x = 0
+
+    for (let i = 0; i < iconImages.length; i++) {
+      let attrIcon = await iconImages[i]
+
+      if (i > 0) {
+        //add space between attributes
+        finalIcon = await finalIcon.composite(this.getJimp('space'), x, 0)
+        x += 5
+      }
+
+      finalIcon = await finalIcon.composite(attrIcon, x, 0)
+      x += 26
+    }
+
+    const finalIconInverted = finalIcon.clone().invert()
+
+    //get image buffer
+    const imgBuffer = await finalIcon.getBufferAsync(Jimp.MIME_PNG)
+    const imgBufferInverted = await finalIconInverted.getBufferAsync(Jimp.MIME_PNG)
+
+    //transform buffers to nativeImage
+    let electronImage = nativeImage.createFromBuffer(imgBuffer)
+    let electronImageInverted = nativeImage.createFromBuffer(imgBufferInverted)
+
+    //set icons on tray
+    this.setTrayImage(electronImage, electronImageInverted)
   }
 }
 

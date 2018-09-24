@@ -3,11 +3,17 @@ const Stats = require('./Stats')
 const ImageManager = require('./ImageManager')
 
 const mb = menubar({
-  icon: __dirname + '/icons/liontar.png'
+  icon: __dirname + '/icons/blank.png'
 })
 
-const setTrayImage = (img) => {
-  mb.tray.setImage(img)
+/**
+ * Sets icons on the tray
+ * @param {*} icon 
+ * @param {*} iconInverted 
+ */
+const setTrayImage = (icon, iconInverted) => {
+  mb.tray.setImage(icon)
+  mb.tray.setPressedImage(iconInverted)
 }
 
 //main
@@ -17,27 +23,10 @@ mb.on('ready', () => {
   let imageManager = new ImageManager(setTrayImage)
   let stats = new Stats()
 
-  let images
-
   imageManager.loadAll()
-    .then(imgs => {
-      images = imgs
-
+    .then(() => {
       stats.setImageManager(imageManager)
       stats.updateStats()
-
-      // console.log('images', images)
-      // console.log('ocho', images.find(img => img.type === '8'))
     })
-
-
-  // stats.updateStats()
-  // stats.getAll()
-  //   .then(stats => {
-  //     console.log('stats', stats)
-  //   })
-
-
-
 
 })
