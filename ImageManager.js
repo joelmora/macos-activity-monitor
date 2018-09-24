@@ -1,29 +1,23 @@
 const Jimp = require('Jimp')
-const util = require('util')
 const { nativeImage } = require('electron')
+
+const HEIGHT = 22
+const COMPACT_W = 26
+const SPACE_W = 5
 
 class ImageManager {
   constructor(setTrayImage) {
     this.setTrayImage = setTrayImage
 
     this.allImages = [
-      { type: 'blank', src: '/icons/blank.png' },
-      { type: 'space', src: '/icons/space.png' },
-      { type: 'mem', src: '/icons/mem.png' },
-      { type: 'cpu', src: '/icons/cpu.png' },
-      { type: 'percentage', src: '/icons/%.png' },
-      { type: '1', src: '/icons/numbers/1.png' },
-      { type: '2', src: '/icons/numbers/2.png' },
-      { type: '3', src: '/icons/numbers/3.png' },
-      { type: '4', src: '/icons/numbers/4.png' },
-      { type: '5', src: '/icons/numbers/5.png' },
-      { type: '6', src: '/icons/numbers/6.png' },
-      { type: '7', src: '/icons/numbers/7.png' },
-      { type: '8', src: '/icons/numbers/8.png' },
-      { type: '9', src: '/icons/numbers/9.png' },
-      { type: '0', src: '/icons/numbers/0.png' },
+      //TODO preloads png images
+      // { type: 'blank', src: '/icons/blank.png' },
     ]
   }
+  /**
+   * Get the jimp object from image
+   * @param {*} type 
+   */
   getJimp(type) {
     return this.allImages.find(img => img.type === type).jimp.clone()
   }
@@ -33,7 +27,7 @@ class ImageManager {
   /**
    * Loads all images available and return it
    */
-  async loadAll() {
+  async preloadAll() {
     return this.getImages()
   }
   /**
@@ -60,42 +54,41 @@ class ImageManager {
    * @param {*} icons 
    */
   async getCompactVersionIcons(icons) {
+
     return await icons.map(async icon => {
-      let numbers = icon.value.toString().split('')
+      let jimpImg = await new Jimp(COMPACT_W, HEIGHT)
 
-      const blank = this.getJimp('blank')
-      const title = this.getJimp(icon.attr)
+      //bitmap fonts generated with https://github.com/libgdx/libgdx/wiki/Hiero
+      const fontTitle = await Jimp.loadFont(__dirname + '/fonts/helvetica_8_b.fnt')
+      const fontValue = await Jimp.loadFont(__dirname + '/fonts/helvetica_13.fnt')
 
-      let x = 0
-      let y = 0
+      let value = icon.value.toString()
+      let unit
+      let title
 
-      //backgroung with title
-      const background = await blank.composite(title, x, y)
-
-      //add each number
-      x += 1
-      y += 9
-
-      let backWNumbers
-
-      await numbers.map(async number => {
-        const numberImg = this.getJimp(number)
-
-        backWNumbers = background.composite(numberImg, x, y)
-        x += 7
-      })
-
-      //add the unit (%, MB, etc)
-      let unitImg
-
+      //unit
       switch (icon.unit) {
         case 'percentage':
-          unitImg = this.getJimp('percentage')
+          unit = '%'
           break
       }
 
-      return await backWNumbers.composite(unitImg, x, y)
+      //title
+      switch (icon.attr) {
+        case 'mem':
+          title = 'MEM'
+          break
+        case 'cpu':
+          title = 'CPU'
+          break
+      }
+
+      jimpImg.print(fontTitle, 0, 1, { text: title, alignmentY: Jimp.VERTICAL_ALIGN_TOP }, COMPACT_W, HEIGHT)
+      jimpImg.print(fontValue, 0, 0, { text: value + unit, alignmentY: Jimp.VERTICAL_ALIGN_BOTTOM }, COMPACT_W, HEIGHT)
+
+      return jimpImg
     })
+
   }
   /**
    * Creates an image part by part and draw it on the menubar
@@ -107,21 +100,20 @@ class ImageManager {
     iconImages = await this.getCompactVersionIcons(icons)
 
     //grab all icons (cpu, mem, etc) and merge into one image
-    let totalWidth = iconImages.length * 26 + (iconImages.length - 1) * 5
-    let finalIcon = await new Jimp(totalWidth, 22)
+    let totalWidth = iconImages.length * COMPACT_W + (iconImages.length - 1) * SPACE_W
+    let finalIcon = await new Jimp(totalWidth, HEIGHT)
     let x = 0
 
     for (let i = 0; i < iconImages.length; i++) {
       let attrIcon = await iconImages[i]
 
+      //add space between attributes
       if (i > 0) {
-        //add space between attributes
-        finalIcon = await finalIcon.composite(this.getJimp('space'), x, 0)
-        x += 5
+        x += SPACE_W
       }
 
       finalIcon = await finalIcon.composite(attrIcon, x, 0)
-      x += 26
+      x += COMPACT_W
     }
 
     const finalIconInverted = finalIcon.clone().invert()

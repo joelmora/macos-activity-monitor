@@ -23,7 +23,7 @@ mb.on('ready', () => {
   let imageManager = new ImageManager(setTrayImage)
   let stats = new Stats()
 
-  imageManager.loadAll()
+  imageManager.preloadAll()
     .then(() => {
       stats.setImageManager(imageManager)
       stats.updateStats()
