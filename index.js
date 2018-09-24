@@ -3,7 +3,7 @@ const Stats = require('./Stats')
 const ImageManager = require('./ImageManager')
 
 const mb = menubar({
-  icon: __dirname + '/icons/blank.png'
+  icon: __dirname + '/icons/blank.png',
 })
 
 /**
