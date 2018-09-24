@@ -1,43 +1,28 @@
-<html>
+import React, { Component } from 'react'
+import { Chart } from 'react-chartjs-2'
+import { Line } from 'react-chartjs-2'
+import RealTimePlugin from 'chartjs-plugin-streaming'
 
-<head>
-  <script src="node_modules/moment/min/moment.min.js"></script>
-  <script src="node_modules/chart.js/dist/Chart.min.js"></script>
-  <script src="node_modules/chartjs-plugin-streaming/dist/chartjs-plugin-streaming.js"></script>
-</head>
+class App extends Component {
+  constructor(props) {
+    super(props)
 
-<body>
-  <div class="chart-container" style="position: relative; height: 150px; width:390px">
-    <canvas id="myChart"></canvas>
-  </div>
-  <script>
-    var ctx = document.getElementById('myChart').getContext('2d');
-
-    setInterval(function () {
-      lineChart.data.datasets.forEach(function (dataset) {
-        dataset.data.push({
-          x: Date.now(),
-          y: parseInt(Math.random() * 100)
-        });
-      });
-    }, 2000)
-
-    var lineChart = new Chart(ctx, {
-      type: 'line',
-      data: {
+    this.state = {
+      count: 0,
+      chartData: {
         datasets: [{
           label: 'CPU',
           data: [{ x: Date.now(), y: 0 }],
           borderColor: 'rgb(54, 162, 235)',
-          backgroundColor: 'rgba(255, 0, 0, 0.5)',
+          backgroundColor: 'rgba(54, 162, 235, 0.5)',
           borderWidth: 2,
           lineTension: 0,
         }]
       },
-      options: {
+      chartOptions: {
         plugins: {
           streaming: {
-            delay: 2000,
+            delay: 3000,
             frameRate: 12,
             duration: 50000,
           }
@@ -80,9 +65,37 @@
           }]
         }
       }
-    });
+    }
 
-  </script>
-</body>
+  }
+  componentDidMount() {
+    Chart.pluginService.register({
+      realtime: RealTimePlugin
+    })
 
-</html>
+    this.updateGraph()
+  }
+  updateGraph() {
+    setInterval(() => {
+      this.setState(prevState => {
+        let chartData = { ...prevState.chartData }
+
+        chartData.datasets[0].data.push({
+          x: Date.now(),
+          y: parseInt(Math.random() * 100, 10)
+        })
+
+        return { chartData, count: prevState.count + 1 }
+      })
+    }, 2000)
+  }
+  render() {
+    return (
+      <div>
+        <Line data={this.state.chartData} options={this.state.chartOptions} height="100"/>
+      </div>
+    )
+  }
+}
+
+export default App;

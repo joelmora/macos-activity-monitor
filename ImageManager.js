@@ -83,7 +83,7 @@ class ImageManager {
           break
       }
 
-      jimpImg.print(fontTitle, 0, 1, { text: title, alignmentY: Jimp.VERTICAL_ALIGN_TOP }, COMPACT_W, HEIGHT)
+      jimpImg.print(fontTitle, 0, 2, { text: title, alignmentY: Jimp.VERTICAL_ALIGN_TOP }, COMPACT_W, HEIGHT)
       jimpImg.print(fontValue, 0, 0, { text: value + unit, alignmentY: Jimp.VERTICAL_ALIGN_BOTTOM }, COMPACT_W, HEIGHT)
 
       return jimpImg

@@ -5,12 +5,22 @@
   "license": "MIT",
   "scripts": {
     "build": "electron-packager . Example --platform=darwin --arch=x64 --version=0.36.0 --icon=Icon.icns",
-    "start": "electron ."
+    "start": "electron .",
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test --env=jsdom",
+    "react-eject": "react-scripts eject"
   },
   "dependencies": {
+    "chart.js": "^2.7.2",
+    "chartjs-plugin-streaming": "^1.6.1",
     "electron": "^3.0.0",
     "jimp": "^0.5.0",
-    "menubar": "^5.2.3"
+    "menubar": "^5.2.3",
+    "react": "^16.5.2",
+    "react-chartjs-2": "^2.7.4",
+    "react-dom": "^16.5.2",
+    "react-scripts": "1.1.5"
   },
   "devDependencies": {
     "eslint": "^5.6.0"
