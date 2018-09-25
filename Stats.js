@@ -1,7 +1,7 @@
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 
-const cpuCommand = 'iostat -n0'
+const cpuUsageCommand = 'top -l 1 -stats "pid,command,cpu" -n 0 |grep CPU'
 const memoryStatsCommand = 'vm_stat'
 const memorySizeCommand = 'sysctl -n hw.memsize'
 const unitDivisor = 1048576 //MB
@@ -73,15 +73,14 @@ class Stats {
    * Get CPU stats
    */
   async getCPUStats() {
-    const { stdout, stderr } = await exec(cpuCommand)
+    const { stdout, stderr } = await exec(cpuUsageCommand)
 
     if (stderr) {
       return
     }
 
-    let lines = stdout.split('\n')
-    const regex = /\s+(\d+)\s+(\d+)\s+(\d+)/
-    let [, CPUuser, CPUsystem, CPUidle] = lines[2].match(regex)
+    const regex = /(\d+.\d+%)/g
+    let [CPUuser, CPUsystem, CPUidle] = stdout.match(regex)
     let CPUusedPercentage = parseInt(CPUuser) + parseInt(CPUsystem)
 
     return {
