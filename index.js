@@ -4,11 +4,13 @@ const ImageManager = require('./ImageManager')
 const Path = require('path')
 const { ipcMain } = require('electron')
 
+let reactWindow
+
 const mb = menubar({
   icon: __dirname + '/icons/blank.png',
   preloadWindow: true,
   index: 'http://localhost:3000',
-  alwaysOnTop: true,
+  // alwaysOnTop: true,
   // index: Path.join('file://', __dirname, 'build/index.html')
   // index: process.env.ENV === 'dev' ? 'http://localhost:9000' : Path.join('file://', __dirname, 'build/index.html'),
 })
@@ -24,14 +26,21 @@ const setTrayImage = (icon, iconInverted) => {
 }
 
 /**
+ * Receive the active windows to be able to send events to that windows
+ */
+ipcMain.on('init-renderer', (event) => {
+  reactWindow = event.sender
+})
+
+/**
  * Send event to other processes
  * @param {*} event 
  * @param {*} data 
  */
 const emitEvent = (event, data) => {
-  // console.log(mb.window.webContents)
-  // mb.window.webContents.send(event, data)
-  // ipcMain.emit(event, data)
+  if (reactWindow) {
+    reactWindow.send(event, data)
+  }
 }
 
 //main
@@ -47,6 +56,10 @@ mb.on('ready', () => {
       stats.updateStats()
     })
 
+})
+
+mb.on('show', () => {
+  // mb.window.openDevTools()
 })
 
 mb.on('after-hide', () => {

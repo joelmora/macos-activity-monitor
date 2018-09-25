@@ -8,14 +8,28 @@ class LineRealtimeChart extends Component {
   constructor(props) {
     super(props)
 
+    let borderColor
+    let backgroundColor
+
+    switch (props.type) {
+      case 'mem':
+        borderColor = 'rgb(54, 235, 127)'
+        backgroundColor = 'rgba(54, 235, 127, 0.5)'
+        break
+      case 'cpu':
+        borderColor = 'rgb(54, 162, 235)'
+        backgroundColor = 'rgba(54, 162, 235, 0.5)'
+        break
+    }
+
     this.state = {
       count: 0,
       chartData: {
         datasets: [{
           label: props.type,
           data: [{ x: Date.now(), y: 0 }],
-          borderColor: 'rgb(54, 162, 235)',
-          backgroundColor: 'rgba(54, 162, 235, 0.5)',
+          borderColor: borderColor,
+          backgroundColor: backgroundColor,
           borderWidth: 2,
           lineTension: 0,
         }]
@@ -67,11 +81,12 @@ class LineRealtimeChart extends Component {
 
   }
   componentDidMount() {
+    console.log('component mounted')
     Chart.pluginService.register({
       realtime: RealTimePlugin
     })
 
-    this.updateGraph()
+    // this.updateGraph()
   }
   updateGraph() {
     setInterval(() => {
@@ -88,14 +103,24 @@ class LineRealtimeChart extends Component {
     }, 2000)
   }
   render() {
+    let chartData = { ...this.state.chartData }
+
+    let date = Date.now() - (this.props.values.length * 2000)
+
+    chartData.datasets[0].data = this.props.values.map(y => {
+      date += 2000
+      return { x: date, y }
+    })
+
     return (
-      <Line id={'chart' + this.props.type} data={this.state.chartData} options={this.state.chartOptions} width={390} height={150} />
+      <Line id={'chart' + this.props.type} data={chartData} options={this.state.chartOptions} width={390} height={150} />
     )
   }
 }
 
 LineRealtimeChart.propTypes = {
-  type: PropTypes.string.isRequired
+  type: PropTypes.string.isRequired,
+  values: PropTypes.array.isRequired
 }
 
 export default LineRealtimeChart
