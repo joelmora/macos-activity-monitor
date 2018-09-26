@@ -1,5 +1,6 @@
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
+const ev = require('../src/utils/events')
 
 const cpuUsageCommand = 'top -l 1 -stats "pid,command,cpu" -n 0 |grep CPU'
 const memoryStatsCommand = 'vm_stat'
@@ -7,12 +8,20 @@ const memorySizeCommand = 'sysctl -n hw.memsize'
 const unitDivisor = 1048576 //MB
 
 class Stats {
-  constructor(emitEvent, interval = 2000) {
+  /**
+   * 
+   * @param {*} emitEvent Emit event to main process
+   * @param {*} interval every x miliseconds to update stats
+   */
+  constructor(emitEvent, interval = 5000) {
     this.interval = interval
     this.emitEvent = emitEvent
   }
   setImageManager(imageManager) {
     this.imageManager = imageManager
+  }
+  setInterval(interval) {
+    this.interval = interval
   }
   /**
    * Get all stats available
@@ -98,7 +107,10 @@ class Stats {
   async updateStats() {
     const results = await this.getAll()
 
-    this.emitEvent('stats-updated', results)
+    this.emitEvent(ev.STATS_UPDATED, {
+      result: results,
+      interval: this.interval,
+    })
 
     //TODO available icons as parameter
     let iconOpts = [

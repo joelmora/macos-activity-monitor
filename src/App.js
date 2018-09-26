@@ -1,44 +1,42 @@
 import React, { Component } from 'react'
-import LineRealtimeChart from './LineRealtimeChart'
-const { ipcRenderer } = window.require('electron')
+import LineRealtimeChart from './components/LineRealtimeChart'
 
-const MAX_VALUES = 30
+const { ipcRenderer } = window.require('electron')
+const ev = require('./utils/events')
 
 class App extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      cpuPercentageUsedHistory: [],
-      memoryPercentageUsedHistory: [],
+      cpuPercentageUsed: 0,
+      memoryPercentageUsed: 0,
+      interval: 2000,
     }
   }
   componentDidMount() {
-    ipcRenderer.send('init-renderer')
-    ipcRenderer.on('stats-updated', this.onStatsUpdated)
+    ipcRenderer.send(ev.INIT_APP)
+    ipcRenderer.on(ev.STATS_UPDATED, this.onStatsUpdated)
   }
   componentWillUnmount() {
-    ipcRenderer.removeListener('stats-updated', this.onStatsUpdated)
+    ipcRenderer.removeListener(ev.STATS_UPDATED, this.onStatsUpdated)
   }
   onStatsUpdated = (event, data) => {
-    let cpuPercentageUsedHistory = [ ...this.state.cpuPercentageUsedHistory ]
-    let memoryPercentageUsedHistory = [ ...this.state.memoryPercentageUsedHistory ]
-
-    //push current value
-    cpuPercentageUsedHistory.push(data.cpu.percentage.used)
-    memoryPercentageUsedHistory.push(data.memory.percentage.used)
-
-    //grab only last MAX_VALUES results
-    cpuPercentageUsedHistory = cpuPercentageUsedHistory.slice(-MAX_VALUES)
-    memoryPercentageUsedHistory = memoryPercentageUsedHistory.slice(-MAX_VALUES)
-
-    this.setState({ cpuPercentageUsedHistory, memoryPercentageUsedHistory })
+    this.setState({
+      cpuPercentageUsed: data.result.cpu.percentage.used,
+      memoryPercentageUsed: data.result.memory.percentage.used,
+      interval: data.interval,
+    })
+  }
+  changeInterval = () => {
+    ipcRenderer.send(ev.INTERVAL_CHANGED, 2000)
   }
   render() {
     return (
       <div>
-        <LineRealtimeChart type="cpu" values={this.state.cpuPercentageUsedHistory}/>
-        <LineRealtimeChart type="mem" values={this.state.memoryPercentageUsedHistory}/>
+        <button onClick={this.changeInterval}>Change interval</button>
+        <LineRealtimeChart type="cpu" currentValue={this.state.cpuPercentageUsed} interval={this.state.interval} />
+        <LineRealtimeChart type="mem" currentValue={this.state.memoryPercentageUsed} interval={this.state.interval} />
       </div>
     )
   }

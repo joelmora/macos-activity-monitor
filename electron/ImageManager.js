@@ -59,8 +59,8 @@ class ImageManager {
       let jimpImg = await new Jimp(COMPACT_W, HEIGHT)
 
       //bitmap fonts generated with https://github.com/libgdx/libgdx/wiki/Hiero
-      const fontTitle = await Jimp.loadFont(__dirname + '/fonts/helvetica_8_b.fnt')
-      const fontValue = await Jimp.loadFont(__dirname + '/fonts/helvetica_13.fnt')
+      const fontTitle = await Jimp.loadFont(__dirname + '/../fonts/helvetica_8_b.fnt')
+      const fontValue = await Jimp.loadFont(__dirname + '/../fonts/helvetica_13.fnt')
 
       let value = icon.value.toString()
       let unit

@@ -23,7 +23,6 @@ class LineRealtimeChart extends Component {
     }
 
     this.state = {
-      count: 0,
       chartData: {
         datasets: [{
           label: props.type,
@@ -37,9 +36,9 @@ class LineRealtimeChart extends Component {
       chartOptions: {
         plugins: {
           streaming: {
-            delay: 3000,
+            delay: this.props.interval,
             frameRate: 12,
-            duration: 50000,
+            duration: this.props.interval * 25,
           }
         },
         //animations
@@ -81,36 +80,23 @@ class LineRealtimeChart extends Component {
 
   }
   componentDidMount() {
-    console.log('component mounted')
     Chart.pluginService.register({
       realtime: RealTimePlugin
     })
-
-    // this.updateGraph()
-  }
-  updateGraph() {
-    setInterval(() => {
-      this.setState(prevState => {
-        let chartData = { ...prevState.chartData }
-
-        chartData.datasets[0].data.push({
-          x: Date.now(),
-          y: parseInt(Math.random() * 100, 10)
-        })
-
-        return { chartData, count: prevState.count + 1 }
-      })
-    }, 2000)
   }
   render() {
     let chartData = { ...this.state.chartData }
+    let chartOptions = { ...this.state.chartOptions }
 
-    let date = Date.now() - (this.props.values.length * 2000)
+    //push the current value stat
+    chartData.datasets[0].data.push({ x: Date.now(), y: this.props.currentValue })
 
-    chartData.datasets[0].data = this.props.values.map(y => {
-      date += 2000
-      return { x: date, y }
-    })
+    //set delay and duration according to interval
+    chartOptions.plugins.streaming = {
+      delay: this.props.interval + 1000,
+      frameRate: 12,
+      duration: this.props.interval * 25,
+    }
 
     return (
       <Line id={'chart' + this.props.type} data={chartData} options={this.state.chartOptions} width={390} height={150} />
@@ -120,7 +106,8 @@ class LineRealtimeChart extends Component {
 
 LineRealtimeChart.propTypes = {
   type: PropTypes.string.isRequired,
-  values: PropTypes.array.isRequired
+  currentValue: PropTypes.number.isRequired,
+  interval: PropTypes.number.isRequired,
 }
 
 export default LineRealtimeChart

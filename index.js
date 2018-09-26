@@ -1,18 +1,19 @@
 const menubar = require('menubar')
-const Stats = require('./Stats')
-const ImageManager = require('./ImageManager')
+const Stats = require('./electron/Stats')
+const ImageManager = require('./electron/ImageManager')
 const Path = require('path')
+const isDev = require('electron-is-dev')
 const { ipcMain } = require('electron')
+const ev = require('./src/utils/events')
 
 let reactWindow
+let stats
 
 const mb = menubar({
   icon: __dirname + '/icons/blank.png',
   preloadWindow: true,
-  index: 'http://localhost:3000',
-  // alwaysOnTop: true,
-  // index: Path.join('file://', __dirname, 'build/index.html')
-  // index: process.env.ENV === 'dev' ? 'http://localhost:9000' : Path.join('file://', __dirname, 'build/index.html'),
+  alwaysOnTop: isDev,
+  index: isDev ? 'http://localhost:3000' : Path.join('file://', __dirname, 'build/index.html'),
 })
 
 /**
@@ -28,8 +29,15 @@ const setTrayImage = (icon, iconInverted) => {
 /**
  * Receive the active windows to be able to send events to that windows
  */
-ipcMain.on('init-renderer', (event) => {
+ipcMain.on(ev.INIT_APP, (event) => {
   reactWindow = event.sender
+})
+
+/**
+ * Change the stats interval
+ */
+ipcMain.on(ev.INTERVAL_CHANGED, (event, interval) => {
+  stats.setInterval(interval)
 })
 
 /**
@@ -48,7 +56,7 @@ mb.on('ready', () => {
   console.log('app is ready')
 
   let imageManager = new ImageManager(setTrayImage)
-  let stats = new Stats(emitEvent)
+  stats = new Stats(emitEvent)
 
   imageManager.preloadAll()
     .then(() => {
@@ -59,10 +67,7 @@ mb.on('ready', () => {
 })
 
 mb.on('show', () => {
-  // mb.window.openDevTools()
-})
-
-mb.on('after-hide', () => {
-  //FIXME glich that set 2 graphics on top of each other
-  mb.window = null
+  if (isDev) {
+    mb.window.openDevTools()
+  }
 })

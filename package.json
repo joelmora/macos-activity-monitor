@@ -15,6 +15,7 @@
     "chart.js": "^2.7.2",
     "chartjs-plugin-streaming": "^1.6.1",
     "electron": "^3.0.0",
+    "electron-is-dev": "^1.0.1",
     "jimp": "^0.5.0",
     "menubar": "^5.2.3",
     "prop-types": "^15.6.2",
