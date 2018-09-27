@@ -3,7 +3,7 @@ const Stats = require('./electron/Stats')
 const ImageManager = require('./electron/ImageManager')
 const Path = require('path')
 const isDev = require('electron-is-dev')
-const { ipcMain } = require('electron')
+const { ipcMain, app } = require('electron')
 const ev = require('./src/utils/events')
 
 let reactWindow
@@ -31,6 +31,13 @@ const setTrayImage = (icon, iconInverted) => {
  */
 ipcMain.on(ev.INIT_APP, (event) => {
   reactWindow = event.sender
+})
+
+/**
+ * Exit app
+ */
+ipcMain.on(ev.EXIT_APP, () => {
+  app.exit()
 })
 
 /**

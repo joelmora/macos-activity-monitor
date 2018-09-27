@@ -21,8 +21,14 @@
     "prop-types": "^15.6.2",
     "react": "^16.5.2",
     "react-chartjs-2": "^2.7.4",
+    "react-color": "^2.14.1",
     "react-dom": "^16.5.2",
-    "react-scripts": "1.1.5"
+    "react-router-dom": "^4.3.1",
+    "react-scripts": "1.1.5",
+    "semantic-ui-css": "^2.4.0",
+    "semantic-ui-react": "^0.82.5",
+    "sweetalert2": "^7.28.2",
+    "sweetalert2-react-content": "^1.0.1"
   },
   "devDependencies": {
     "eslint": "^5.6.0"
