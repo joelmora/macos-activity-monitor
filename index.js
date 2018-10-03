@@ -77,24 +77,11 @@ ipcMain.on(ev.REDRAW_ICONS, () => {
   imageManager.redrawIcons()
 })
 
-// const url = require('url').format({
-//   pathname: Path.join(__dirname, '/build/index.html'),
-//   protocol: 'file:',
-//   slashes: true
-// })
-
-const url = Path.join('file://', __dirname, '/build/index.html')
-
-console.log('url', url)
-
-
 const mb = menubar({
   icon: __dirname + '/icons/statTemplate.png',
   preloadWindow: true,
   alwaysOnTop: isDev,
-  // index: isDev ? 'http://localhost:3000' : Path.join('file://', __dirname, 'build/index.html'),
-  // index: Path.join('file://', __dirname, '/build/index.html'),
-  index: url,
+  index: isDev ? 'http://localhost:3000' : Path.join('file://', __dirname, 'build/index.html'),
 })
 
 /**

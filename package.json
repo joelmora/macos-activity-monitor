@@ -1,21 +1,31 @@
 {
   "name": "osx-activity-monitor",
   "version": "1.0.0",
+  "description": "CPU and Memory stats in your tray bar",
+  "keywords": [
+    "stats",
+    "activity",
+    "monitor",
+    "cpu",
+    "memory"
+  ],
+  "author": "Joel Mora <joelmora16@gmail.com>",
   "main": "index.js",
   "license": "MIT",
   "homepage": "./",
   "scripts": {
-    "build": "electron-packager . Example --platform=darwin --arch=x64 --version=0.36.0 --icon=Icon.icns",
-    "start": "electron .",
+    "electron-build": "electron-packager . --platform=darwin --overwrite --icon=icons/icon.icns",
+    "electron-start": "electron .",
+    "create-icon": "png2icns icons/app-icon.png -s 16,32,64,128,256,512 -o icons/icon.icns",
     "react-start": "react-scripts start",
-    "react-build": "react-scripts build",
+    "react-build": "yarn install && react-scripts build",
     "react-test": "react-scripts test --env=jsdom",
-    "react-eject": "react-scripts eject"
+    "react-eject": "react-scripts eject",
+    "build-app": "yarn react-build && yarn electron-build"
   },
   "dependencies": {
     "chart.js": "^2.7.2",
     "chartjs-plugin-streaming": "^1.6.1",
-    "electron": "^3.0.0",
     "electron-is-dev": "^1.0.1",
     "electron-store": "^2.0.0",
     "hex-rgb": "^3.0.0",
@@ -34,9 +44,12 @@
     "sweetalert2-react-content": "^1.0.1"
   },
   "devDependencies": {
-    "babel-eslint": "^10.0.1",
+    "babel-eslint": "^9.0.0",
+    "electron": "^3.0.0",
+    "electron-packager": "^12.1.2",
     "eslint": "^5.6.0",
-    "eslint-plugin-react": "^7.11.1"
+    "eslint-plugin-react": "^7.11.1",
+    "png2icns": "^0.0.1"
   },
   "browserslist": [
     ">0.2%",
