@@ -47,6 +47,9 @@ class Settings extends Component {
   toggle = (key, i) => {
     let value = this.state.indicators[i][key]
     this.changeKey(i, key, !value)
+
+    //redraw icons in case of on/off indicators
+    ipcRenderer.send(ev.REDRAW_ICONS)
   }
   /**
    * Change indicator color

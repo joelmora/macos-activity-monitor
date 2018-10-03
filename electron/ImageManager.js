@@ -5,13 +5,16 @@ const HEIGHT = 22
 const COMPACT_W = 26
 const SPACE_W = 5
 
+const imageDir = __dirname + '/../icons/'
+
 class ImageManager {
-  constructor(setTrayImage) {
+  constructor(setTrayImage, getSetting) {
     this.setTrayImage = setTrayImage
+    this.getSetting = getSetting
+    this.icons = []
 
     this.allImages = [
-      //TODO preloads png images
-      // { type: 'blank', src: '/icons/blank.png' },
+      { type: 'stat', src: imageDir + 'stat.png' },
     ]
   }
   /**
@@ -41,7 +44,7 @@ class ImageManager {
     }
 
     //read the image from disk and get the jimp object
-    const jimpImg = await Jimp.read(__dirname + this.allImages[index].src)
+    const jimpImg = await Jimp.read(this.allImages[index].src)
 
     //add jimp object to the array
     this.allImages[index].jimp = jimpImg
@@ -74,7 +77,7 @@ class ImageManager {
       }
 
       //title
-      switch (icon.attr) {
+      switch (icon.indicator) {
         case 'mem':
           title = 'MEM'
           break
@@ -92,9 +95,38 @@ class ImageManager {
   }
   /**
    * Creates an image part by part and draw it on the menubar
-   * @param {*} icons 
+   * @param {*} iconsOptions 
    */
-  async drawIcon(icons) {
+  async drawIcons(iconsOptions) {
+
+    this.icons = iconsOptions
+
+    let icons = []
+
+    //show/hide icons depending on the settings
+    this.getSetting('indicators').map(indicator => {
+      if (!indicator.isOn) {
+        return
+      }
+
+      icons.push(iconsOptions.find(icon => icon.indicator === indicator.short))
+    })
+
+    //user turned off all icons, should display default icon
+    if (icons.length === 0) {
+      const finalIconInverted = this.getJimp('stat').clone().invert()
+
+      //get image buffer
+      const imgBuffer = await this.getJimp('stat').getBufferAsync(Jimp.MIME_PNG)
+      const imgBufferInverted = await finalIconInverted.getBufferAsync(Jimp.MIME_PNG)
+  
+      //transform buffers to nativeImage
+      let electronImage = nativeImage.createFromBuffer(imgBuffer)
+      let electronImageInverted = nativeImage.createFromBuffer(imgBufferInverted)
+
+      this.setTrayImage(electronImage, electronImageInverted)
+      return
+    }
 
     let iconImages = []
     iconImages = await this.getCompactVersionIcons(icons)
@@ -128,6 +160,12 @@ class ImageManager {
 
     //set icons on tray
     this.setTrayImage(electronImage, electronImageInverted)
+  }
+  /**
+   * Redraw icons
+   */
+  async redrawIcons() {
+    await this.drawIcons(this.icons)
   }
 }
 

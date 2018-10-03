@@ -15,7 +15,7 @@ class Charts extends Component {
     this.state = {
       stats: [],
       cpuPercentageUsed: -1,
-      memoryPercentageUsed: -1,
+      memPercentageUsed: -1,
       interval: undefined,
       hasSettings: false,
       hasStats: false,
@@ -49,7 +49,7 @@ class Charts extends Component {
   onStatsUpdated = (event, data) => {
     this.setState({
       cpuPercentageUsed: data.results.slice(-1)[0].cpu.percentage.used,
-      memoryPercentageUsed: data.results.slice(-1)[0].memory.percentage.used,
+      memPercentageUsed: data.results.slice(-1)[0].memory.percentage.used,
       interval: data.interval,
     })
   }
@@ -84,20 +84,22 @@ class Charts extends Component {
           <Icon name="power off" link onClick={this.exit} style={{ marginLeft: 10 }} />
         </Segment>
         <Segment>
-          <LineRealtimeChart
-            type="cpu"
-            currentValue={this.state.cpuPercentageUsed}
-            interval={this.state.interval}
-            indicators={this.state.indicators}
-            stats={stats}
-          />
-          <LineRealtimeChart
-            type="mem"
-            currentValue={this.state.memoryPercentageUsed}
-            interval={this.state.interval}
-            indicators={this.state.indicators}
-            stats={stats}
-          />
+          {
+            this.state.indicators.map(indicator => {
+              if (!indicator.isOn) return null
+
+              return (
+                <LineRealtimeChart
+                  key={indicator.short}
+                  type={indicator.short}
+                  currentValue={this.state[indicator.short + 'PercentageUsed']}
+                  interval={this.state.interval}
+                  indicators={this.state.indicators}
+                  stats={stats}
+                />
+              )
+            })
+          }
         </Segment>
       </React.Fragment>
     )

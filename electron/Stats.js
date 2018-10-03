@@ -10,13 +10,13 @@ const MAX_RESULT_CACHE = 100
 
 class Stats {
   /**
-   * 
    * @param {*} emitEvent Emit event to main process
-   * @param {*} interval every x miliseconds to update stats
+   * @param {*} getSetting Get a setting
    */
-  constructor(emitEvent, interval = 5000) {
+  constructor(emitEvent, getSetting) {
     this.results = []
-    this.interval = interval
+    this.getSetting = getSetting
+    this.interval = getSetting('interval')
     this.emitEvent = emitEvent
   }
   setImageManager(imageManager) {
@@ -123,14 +123,13 @@ class Stats {
       interval: this.interval,
     })
 
-    //TODO available icons as parameter
     let iconOpts = [
-      { attr: 'mem', value: result.memory.percentage.used, unit: 'percentage' },
-      { attr: 'cpu', value: result.cpu.percentage.used, unit: 'percentage' },
+      { indicator: 'mem', value: result.memory.percentage.used, unit: 'percentage' },
+      { indicator: 'cpu', value: result.cpu.percentage.used, unit: 'percentage' },
     ]
 
     //draw the icon
-    this.imageManager.drawIcon(iconOpts)
+    this.imageManager.drawIcons(iconOpts)
 
     //update stats again every "x" interval
     setTimeout(() => this.updateStats(), this.interval)

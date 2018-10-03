@@ -20,6 +20,7 @@ const store = new Store({
 
 let reactWindow
 let stats
+let imageManager
 
 const mb = menubar({
   icon: __dirname + '/icons/blank.png',
@@ -49,6 +50,13 @@ const emitEvent = (event, data) => {
       emitEvent(event, data)
     }, 100)
   }
+}
+
+/**
+ * Get a key on the store
+ */
+const getStoreKey = (key) => {
+  return store.get(key)
 }
 
 /**
@@ -99,18 +107,17 @@ ipcMain.on(ev.SETTINGS_CHANGED, (event, settings) => {
 })
 
 /**
- * Receive the active windows to be able to send events to that windows
+ * Redraw icons on tray
  */
-ipcMain.on(ev.INIT_APP, (event) => {
-  reactWindow = event.sender
+ipcMain.on(ev.REDRAW_ICONS, () => {
+  imageManager.redrawIcons()
 })
 
 //main
 mb.on('ready', () => {
-  console.log('app is ready')
-
-  let imageManager = new ImageManager(setTrayImage)
-  stats = new Stats(emitEvent, store.get('interval'))
+  
+  imageManager = new ImageManager(setTrayImage, getStoreKey)
+  stats = new Stats(emitEvent, getStoreKey)
 
   imageManager.preloadAll()
     .then(() => {
