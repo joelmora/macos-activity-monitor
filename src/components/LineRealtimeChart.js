@@ -4,12 +4,13 @@ import { Chart } from 'react-chartjs-2'
 import { Line } from 'react-chartjs-2'
 import RealTimePlugin from 'chartjs-plugin-streaming'
 import hexRgb from 'hex-rgb'
+import { Header } from 'semantic-ui-react'
 
 class LineRealtimeChart extends Component {
   constructor(props) {
     super(props)
 
-    let setting = props.indicators.find(ind => ind.short === props.type)
+    let setting = props.indicators.find(ind => ind.short === props.indicator.short)
     let borderColor = this.getRGBA(setting.color)
     let backgroundColor = this.getRGBA(setting.color, 0.5)
 
@@ -21,17 +22,16 @@ class LineRealtimeChart extends Component {
     data.push({ x: date, y: 0 })
     date += props.interval
 
-    props.stats.map(stat => {
-      data.push({ x: date, y: stat[props.type] })
+    for (let stat in props.stats) {
+      data.push({ x: date, y: stat[props.indicator.short] })
       date += props.interval
-    })
+    }
 
     this.state = {
       chartData: {
         datasets: [{
-          label: props.type,
+          label: props.indicator.short,
           data: data,
-          // data: [{ x: Date.now(), y: 0 }],
           borderColor: borderColor,
           backgroundColor: backgroundColor,
           borderWidth: 2,
@@ -39,6 +39,10 @@ class LineRealtimeChart extends Component {
         }]
       },
       chartOptions: {
+        //title
+        legend: {
+          display: false,
+        },
         plugins: {
           streaming: {
             delay: this.props.interval,
@@ -110,13 +114,20 @@ class LineRealtimeChart extends Component {
     }
 
     return (
-      <Line id={'chart' + this.props.type} data={chartData} options={this.state.chartOptions} width={390} height={150} />
+      <React.Fragment>
+        <div className="flex legend-container">
+          <div className="legend-square" style={{  borderColor: this.props.indicator.color, background: this.getRGBA(this.props.indicator.color, 0.5) }}>
+          </div>
+          <Header as='h4' style={{ margin: 0 }}>{this.props.indicator.name}</Header>
+        </div>
+        <Line id={'chart' + this.props.indicator.short} data={chartData} options={this.state.chartOptions} width={390} height={130} />
+      </React.Fragment>
     )
   }
 }
 
 LineRealtimeChart.propTypes = {
-  type: PropTypes.string.isRequired,
+  indicator: PropTypes.object.isRequired,
   currentValue: PropTypes.number.isRequired,
   interval: PropTypes.number.isRequired,
   stats: PropTypes.array,

@@ -43,3 +43,17 @@
   height: 50px !important;
 }
 
+.legend-container {
+  height: 25px;
+  margin-top: 3px;
+  margin-bottom: 7px;
+}
+
+.legend-square {
+  margin-right: 10px;
+  width: 30px;
+  height: 18px;
+  border-width: 2px;
+  border-style: solid;
+}
+

@@ -27,6 +27,7 @@ class Settings extends Component {
     this.setState({
       indicators: settings.indicators,
       interval: settings.interval,
+      colorPickerIndex: settings.indicators.findIndex(ind => ind.showColorPicker === true),
       hasSettings: true,
     })
   }

@@ -91,7 +91,7 @@ class Charts extends Component {
               return (
                 <LineRealtimeChart
                   key={indicator.short}
-                  type={indicator.short}
+                  indicator={indicator}
                   currentValue={this.state[indicator.short + 'PercentageUsed']}
                   interval={this.state.interval}
                   indicators={this.state.indicators}

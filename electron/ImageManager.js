@@ -14,7 +14,6 @@ class ImageManager {
     this.icons = []
 
     this.allImages = [
-      { type: 'blank', src: imageDir + 'blank.png' },
       { type: 'stat', src: imageDir + 'statTemplate.png' },
     ]
   }

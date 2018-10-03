@@ -16,8 +16,8 @@ const store = new Store({
   defaults: {
     interval: 2000,
     indicators: [
-      { name: 'CPU', short: 'cpu', isOn: true, color: '#36a2eb', showColorPicker: undefined },
-      { name: 'Memory', short: 'mem', isOn: true, color: '#36eb7f', showColorPicker: undefined },
+      { name: 'CPU', short: 'cpu', isOn: true, color: '#0693E3', showColorPicker: false },
+      { name: 'Memory', short: 'mem', isOn: true, color: '#00D084', showColorPicker: false },
     ],
   }
 })
@@ -78,7 +78,7 @@ ipcMain.on(ev.REDRAW_ICONS, () => {
 })
 
 const mb = menubar({
-  icon: __dirname + '/icons/blank.png',
+  icon: __dirname + '/icons/statTemplate.png',
   preloadWindow: true,
   alwaysOnTop: isDev,
   index: isDev ? 'http://localhost:3000' : Path.join('file://', __dirname, 'build/index.html'),
