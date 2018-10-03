@@ -41,12 +41,12 @@ const setTrayImage = (icon, iconInverted) => {
 /**
  * Send event to other processes
  */
-const emitEvent = (event, data, force = false) => {
+const emitEvent = (event, data) => {
   if (reactWindow) {
     reactWindow.send(event, data)
-  } else if (force) {
+  } else {
     setTimeout(() => {
-      emitEvent(event, data, true)
+      emitEvent(event, data)
     }, 100)
   }
 }
@@ -73,9 +73,17 @@ ipcMain.on(ev.INTERVAL_CHANGED, (event, interval) => {
 })
 
 /**
+ * Main app ask for Settings
  */
 ipcMain.on(ev.GET_SETTINGS, () => {
-  emitEvent(ev.GET_SETTINGS, store.store, true)
+  emitEvent(ev.GET_SETTINGS, store.store)
+})
+
+/**
+ * Main app ask for Stats
+ */
+ipcMain.on(ev.GET_STATS, () => {
+  emitEvent(ev.GET_STATS, stats.getPreviousStats())
 })
 
 /**

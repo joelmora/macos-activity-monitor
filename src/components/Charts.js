@@ -13,20 +13,31 @@ class Charts extends Component {
     super(props)
 
     this.state = {
-      cpuPercentageUsed: 0,
-      memoryPercentageUsed: 0,
+      stats: [],
+      cpuPercentageUsed: -1,
+      memoryPercentageUsed: -1,
       interval: undefined,
       hasSettings: false,
+      hasStats: false,
     }
   }
   componentDidMount() {
     ipcRenderer.send(ev.GET_SETTINGS)
+    ipcRenderer.send(ev.GET_STATS)
     ipcRenderer.on(ev.STATS_UPDATED, this.onStatsUpdated)
     ipcRenderer.on(ev.GET_SETTINGS, this.onGetSettings)
+    ipcRenderer.on(ev.GET_STATS, this.onGetStats)
   }
   componentWillUnmount() {
     ipcRenderer.removeListener(ev.STATS_UPDATED, this.onStatsUpdated)
     ipcRenderer.removeListener(ev.GET_SETTINGS, this.onGetSettings)
+    ipcRenderer.removeListener(ev.GET_STATS, this.onGetStats)
+  }
+  onGetStats = (event, stats) => {
+    this.setState({
+      stats: stats,
+      hasStats: true,
+    })
   }
   onGetSettings = (event, settings) => {
     this.setState({
@@ -37,8 +48,8 @@ class Charts extends Component {
   }
   onStatsUpdated = (event, data) => {
     this.setState({
-      cpuPercentageUsed: data.result.cpu.percentage.used,
-      memoryPercentageUsed: data.result.memory.percentage.used,
+      cpuPercentageUsed: data.results.slice(-1)[0].cpu.percentage.used,
+      memoryPercentageUsed: data.results.slice(-1)[0].memory.percentage.used,
       interval: data.interval,
     })
   }
@@ -60,7 +71,11 @@ class Charts extends Component {
     })
   }
   render() {
-    if (!this.state.hasSettings) return null
+    if (!this.state.hasSettings || !this.state.hasStats) return null
+
+    let stats = this.state.stats.map(result => {
+      return { cpu: result.cpu.percentage.used, mem: result.memory.percentage.used, }
+    })
 
     return (
       <React.Fragment>
@@ -74,12 +89,14 @@ class Charts extends Component {
             currentValue={this.state.cpuPercentageUsed}
             interval={this.state.interval}
             indicators={this.state.indicators}
+            stats={stats}
           />
           <LineRealtimeChart
             type="mem"
             currentValue={this.state.memoryPercentageUsed}
             interval={this.state.interval}
             indicators={this.state.indicators}
+            stats={stats}
           />
         </Segment>
       </React.Fragment>

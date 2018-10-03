@@ -16,7 +16,7 @@ class App extends Component {
     return (
       <BrowserRouter>
         <Segment.Group className="h-100 flex">
-          <Route path="/" component={Charts} exact/>
+          <Route path="/" component={Charts} exact />
           <Route path="/settings" component={Settings} />
         </Segment.Group>
       </BrowserRouter>

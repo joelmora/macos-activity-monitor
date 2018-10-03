@@ -6,6 +6,7 @@ const cpuUsageCommand = 'top -l 1 -stats "pid,command,cpu" -n 0 |grep CPU'
 const memoryStatsCommand = 'vm_stat'
 const memorySizeCommand = 'sysctl -n hw.memsize'
 const unitDivisor = 1048576 //MB
+const MAX_RESULT_CACHE = 100
 
 class Stats {
   /**
@@ -14,6 +15,7 @@ class Stats {
    * @param {*} interval every x miliseconds to update stats
    */
   constructor(emitEvent, interval = 5000) {
+    this.results = []
     this.interval = interval
     this.emitEvent = emitEvent
   }
@@ -22,6 +24,13 @@ class Stats {
   }
   setInterval(interval) {
     this.interval = interval
+  }
+  saveResults(result) {
+    this.results.push(result)
+    this.results = this.results.slice(-MAX_RESULT_CACHE)
+  }
+  getPreviousStats() {
+    return this.results
   }
   /**
    * Get all stats available
@@ -105,17 +114,19 @@ class Stats {
    * Get stats and update the UI
    */
   async updateStats() {
-    const results = await this.getAll()
+    const result = await this.getAll()
+
+    this.saveResults(result)
 
     this.emitEvent(ev.STATS_UPDATED, {
-      result: results,
+      results: this.results,
       interval: this.interval,
     })
 
     //TODO available icons as parameter
     let iconOpts = [
-      { attr: 'mem', value: results.memory.percentage.used, unit: 'percentage' },
-      { attr: 'cpu', value: results.cpu.percentage.used, unit: 'percentage' },
+      { attr: 'mem', value: result.memory.percentage.used, unit: 'percentage' },
+      { attr: 'cpu', value: result.cpu.percentage.used, unit: 'percentage' },
     ]
 
     //draw the icon
