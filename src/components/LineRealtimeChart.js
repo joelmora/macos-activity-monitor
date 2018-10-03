@@ -127,6 +127,7 @@ class LineRealtimeChart extends Component {
 }
 
 LineRealtimeChart.propTypes = {
+  indicators: PropTypes.array.isRequired,
   indicator: PropTypes.object.isRequired,
   currentValue: PropTypes.number.isRequired,
   interval: PropTypes.number.isRequired,

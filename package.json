@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "homepage": "./",
   "scripts": {
     "build": "electron-packager . Example --platform=darwin --arch=x64 --version=0.36.0 --icon=Icon.icns",
     "start": "electron .",
@@ -33,7 +34,9 @@
     "sweetalert2-react-content": "^1.0.1"
   },
   "devDependencies": {
-    "eslint": "^5.6.0"
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.6.0",
+    "eslint-plugin-react": "^7.11.1"
   },
   "browserslist": [
     ">0.2%",
