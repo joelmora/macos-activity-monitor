@@ -86,7 +86,7 @@ class Charts extends Component {
         <Segment>
           {
             this.state.indicators.map(indicator => {
-              if (!indicator.isOn) return null
+              if (!indicator.showGraph) return null
 
               return (
                 <LineRealtimeChart

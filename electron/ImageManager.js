@@ -105,7 +105,7 @@ class ImageManager {
 
     //show/hide icons depending on the settings
     this.getSetting('indicators').map(indicator => {
-      if (!indicator.isOn) {
+      if (!indicator.showIcon) {
         return
       }
 

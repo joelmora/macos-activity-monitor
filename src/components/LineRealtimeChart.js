@@ -22,7 +22,7 @@ class LineRealtimeChart extends Component {
     data.push({ x: date, y: 0 })
     date += props.interval
 
-    for (let stat in props.stats) {
+    for (let stat of props.stats) {
       data.push({ x: date, y: stat[props.indicator.short] })
       date += props.interval
     }

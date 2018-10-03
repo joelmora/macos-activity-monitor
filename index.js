@@ -16,8 +16,8 @@ const store = new Store({
   defaults: {
     interval: 2000,
     indicators: [
-      { name: 'CPU', short: 'cpu', isOn: true, color: '#0693E3', showColorPicker: false },
-      { name: 'Memory', short: 'mem', isOn: true, color: '#00D084', showColorPicker: false },
+      { name: 'CPU', short: 'cpu', showGraph: true, showIcon: true, color: '#0693E3', showColorPicker: false },
+      { name: 'Memory', short: 'mem', showGraph: true, showIcon: true, color: '#00D084', showColorPicker: false },
     ],
   }
 })

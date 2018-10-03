@@ -116,7 +116,8 @@ class Settings extends Component {
             <Table.Header>
               <Table.Row>
                 <Table.HeaderCell></Table.HeaderCell>
-                <Table.HeaderCell textAlign="center">Show</Table.HeaderCell>
+                <Table.HeaderCell textAlign="center">Graph</Table.HeaderCell>
+                <Table.HeaderCell textAlign="center">Icon</Table.HeaderCell>
                 <Table.HeaderCell>Color</Table.HeaderCell>
               </Table.Row>
             </Table.Header>
@@ -129,7 +130,10 @@ class Settings extends Component {
                       {attr.name}
                     </Table.Cell>
                     <Table.Cell textAlign="center">
-                      <Radio toggle checked={attr.isOn} onChange={this.toggle.bind(this, 'isOn', i)} />
+                      <Radio toggle checked={attr.showGraph} onChange={this.toggle.bind(this, 'showGraph', i)} />
+                    </Table.Cell>
+                    <Table.Cell textAlign="center">
+                      <Radio toggle checked={attr.showIcon} onChange={this.toggle.bind(this, 'showIcon', i)} />
                     </Table.Cell>
                     <Table.Cell>
                       <Button size="tiny" icon="dropdown" style={{ backgroundColor: attr.color }} onClick={this.showColorPicker.bind(this, i)} />
