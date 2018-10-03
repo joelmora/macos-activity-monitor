@@ -7,6 +7,10 @@ const isDev = require('electron-is-dev')
 const { ipcMain, app } = require('electron')
 const ev = require('./src/utils/events')
 
+let reactWindow
+let stats
+let imageManager
+
 const store = new Store({
   name: 'user-preferences',
   defaults: {
@@ -18,47 +22,7 @@ const store = new Store({
   }
 })
 
-let reactWindow
-let stats
-let imageManager
-
-const mb = menubar({
-  icon: __dirname + '/icons/blank.png',
-  preloadWindow: true,
-  alwaysOnTop: isDev,
-  index: isDev ? 'http://localhost:3000' : Path.join('file://', __dirname, 'build/index.html'),
-})
-
-/**
- * Sets icons on the tray
- * @param {*} icon 
- * @param {*} iconInverted 
- */
-const setTrayImage = (icon, iconInverted) => {
-  mb.tray.setImage(icon)
-  mb.tray.setPressedImage(iconInverted)
-}
-
-/**
- * Send event to other processes
- */
-const emitEvent = (event, data) => {
-  if (reactWindow) {
-    reactWindow.send(event, data)
-  } else {
-    setTimeout(() => {
-      emitEvent(event, data)
-    }, 100)
-  }
-}
-
-/**
- * Get a key on the store
- */
-const getStoreKey = (key) => {
-  return store.get(key)
-}
-
+//listeners
 /**
  * Receive the active windows to be able to send events to that windows
  */
@@ -113,9 +77,45 @@ ipcMain.on(ev.REDRAW_ICONS, () => {
   imageManager.redrawIcons()
 })
 
+const mb = menubar({
+  icon: __dirname + '/icons/blank.png',
+  preloadWindow: true,
+  alwaysOnTop: isDev,
+  index: isDev ? 'http://localhost:3000' : Path.join('file://', __dirname, 'build/index.html'),
+})
+
+/**
+ * Sets icons on the tray
+ * @param {*} path 
+ */
+const setTrayImage = (path) => {
+  mb.tray.setImage(path)
+}
+
+/**
+ * Send event to other processes
+ */
+const emitEvent = (event, data) => {
+  if (reactWindow) {
+    reactWindow.send(event, data)
+  } else {
+    setTimeout(() => {
+      emitEvent(event, data)
+    }, 100)
+  }
+}
+
+/**
+ * Get a key on the store
+ */
+const getStoreKey = (key) => {
+  return store.get(key)
+}
+
+
 //main
 mb.on('ready', () => {
-  
+
   imageManager = new ImageManager(setTrayImage, getStoreKey)
   stats = new Stats(emitEvent, getStoreKey)
 

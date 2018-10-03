@@ -1,11 +1,11 @@
 const Jimp = require('Jimp')
-const { nativeImage } = require('electron')
 
 const HEIGHT = 22
 const COMPACT_W = 26
 const SPACE_W = 5
 
 const imageDir = __dirname + '/../icons/'
+const fontDir = __dirname + '/../fonts/'
 
 class ImageManager {
   constructor(setTrayImage, getSetting) {
@@ -14,7 +14,8 @@ class ImageManager {
     this.icons = []
 
     this.allImages = [
-      { type: 'stat', src: imageDir + 'stat.png' },
+      { type: 'blank', src: imageDir + 'blank.png' },
+      { type: 'stat', src: imageDir + 'statTemplate.png' },
     ]
   }
   /**
@@ -62,8 +63,8 @@ class ImageManager {
       let jimpImg = await new Jimp(COMPACT_W, HEIGHT)
 
       //bitmap fonts generated with https://github.com/libgdx/libgdx/wiki/Hiero
-      const fontTitle = await Jimp.loadFont(__dirname + '/../fonts/helvetica_8_b.fnt')
-      const fontValue = await Jimp.loadFont(__dirname + '/../fonts/helvetica_13.fnt')
+      const fontTitle = await Jimp.loadFont(fontDir + 'helvetica_8_b.fnt')
+      const fontValue = await Jimp.loadFont(fontDir + 'helvetica_13.fnt')
 
       let value = icon.value.toString()
       let unit
@@ -114,17 +115,7 @@ class ImageManager {
 
     //user turned off all icons, should display default icon
     if (icons.length === 0) {
-      const finalIconInverted = this.getJimp('stat').clone().invert()
-
-      //get image buffer
-      const imgBuffer = await this.getJimp('stat').getBufferAsync(Jimp.MIME_PNG)
-      const imgBufferInverted = await finalIconInverted.getBufferAsync(Jimp.MIME_PNG)
-  
-      //transform buffers to nativeImage
-      let electronImage = nativeImage.createFromBuffer(imgBuffer)
-      let electronImageInverted = nativeImage.createFromBuffer(imgBufferInverted)
-
-      this.setTrayImage(electronImage, electronImageInverted)
+      this.setTrayImage(imageDir + 'statTemplate.png')
       return
     }
 
@@ -148,18 +139,11 @@ class ImageManager {
       x += COMPACT_W
     }
 
-    const finalIconInverted = finalIcon.clone().invert()
-
-    //get image buffer
-    const imgBuffer = await finalIcon.getBufferAsync(Jimp.MIME_PNG)
-    const imgBufferInverted = await finalIconInverted.getBufferAsync(Jimp.MIME_PNG)
-
-    //transform buffers to nativeImage
-    let electronImage = nativeImage.createFromBuffer(imgBuffer)
-    let electronImageInverted = nativeImage.createFromBuffer(imgBufferInverted)
+    await finalIcon.writeAsync(imageDir + 'iconTemplate.png')
 
     //set icons on tray
-    this.setTrayImage(electronImage, electronImageInverted)
+    this.setTrayImage(imageDir + 'iconTemplate.png')
+
   }
   /**
    * Redraw icons
