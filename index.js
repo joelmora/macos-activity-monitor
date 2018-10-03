@@ -1,10 +1,22 @@
 const menubar = require('menubar')
+const Store = require('electron-store')
 const Stats = require('./electron/Stats')
 const ImageManager = require('./electron/ImageManager')
 const Path = require('path')
 const isDev = require('electron-is-dev')
 const { ipcMain, app } = require('electron')
 const ev = require('./src/utils/events')
+
+const store = new Store({
+  name: 'user-preferences',
+  defaults: {
+    interval: 2000,
+    indicators: [
+      { name: 'CPU', short: 'cpu', isOn: true, color: '#36a2eb', showColorPicker: undefined },
+      { name: 'Memory', short: 'mem', isOn: true, color: '#36eb7f', showColorPicker: undefined },
+    ],
+  }
+})
 
 let reactWindow
 let stats
@@ -24,6 +36,19 @@ const mb = menubar({
 const setTrayImage = (icon, iconInverted) => {
   mb.tray.setImage(icon)
   mb.tray.setPressedImage(iconInverted)
+}
+
+/**
+ * Send event to other processes
+ */
+const emitEvent = (event, data, force = false) => {
+  if (reactWindow) {
+    reactWindow.send(event, data)
+  } else if (force) {
+    setTimeout(() => {
+      emitEvent(event, data, true)
+    }, 100)
+  }
 }
 
 /**
@@ -48,25 +73,40 @@ ipcMain.on(ev.INTERVAL_CHANGED, (event, interval) => {
 })
 
 /**
- * Send event to other processes
- * @param {*} event 
- * @param {*} data 
  */
-const emitEvent = (event, data) => {
-  if (reactWindow) {
-    reactWindow.send(event, data)
-  }
-}
+ipcMain.on(ev.GET_SETTINGS, () => {
+  emitEvent(ev.GET_SETTINGS, store.store, true)
+})
+
+/**
+ * Settings changed!
+ */
+ipcMain.on(ev.SETTINGS_CHANGED, (event, settings) => {
+  stats.setInterval(settings.interval)
+
+  //save settings on store
+  Object.keys(settings).map(key => {
+    store.set(key, settings[key])
+  })
+})
+
+/**
+ * Receive the active windows to be able to send events to that windows
+ */
+ipcMain.on(ev.INIT_APP, (event) => {
+  reactWindow = event.sender
+})
 
 //main
 mb.on('ready', () => {
   console.log('app is ready')
 
   let imageManager = new ImageManager(setTrayImage)
-  stats = new Stats(emitEvent)
+  stats = new Stats(emitEvent, store.get('interval'))
 
   imageManager.preloadAll()
     .then(() => {
+      //init stats
       stats.setImageManager(imageManager)
       stats.updateStats()
     })

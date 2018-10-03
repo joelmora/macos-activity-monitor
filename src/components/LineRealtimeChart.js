@@ -3,25 +3,15 @@ import PropTypes from 'prop-types'
 import { Chart } from 'react-chartjs-2'
 import { Line } from 'react-chartjs-2'
 import RealTimePlugin from 'chartjs-plugin-streaming'
+import hexRgb from 'hex-rgb'
 
 class LineRealtimeChart extends Component {
   constructor(props) {
     super(props)
 
-    let borderColor
-    let backgroundColor
-
-    switch (props.type) {
-      case 'mem':
-        borderColor = 'rgb(54, 235, 127)'
-        backgroundColor = 'rgba(54, 235, 127, 0.5)'
-        break
-      case 'cpu':
-      default:
-        borderColor = 'rgb(54, 162, 235)'
-        backgroundColor = 'rgba(54, 162, 235, 0.5)'
-        break
-    }
+    let setting = props.indicators.find(ind => ind.short === props.type)
+    let borderColor = this.getRGBA(setting.color)
+    let backgroundColor = this.getRGBA(setting.color, 0.5)
 
     this.state = {
       chartData: {
@@ -79,6 +69,10 @@ class LineRealtimeChart extends Component {
       }
     }
 
+  }
+  getRGBA = (hex, opacity = 1) => {
+    let a = hexRgb(hex)
+    return `rgba(${a.red}, ${a.green}, ${a.blue}, ${opacity})`
   }
   componentDidMount() {
     Chart.pluginService.register({

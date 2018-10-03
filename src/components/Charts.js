@@ -15,15 +15,25 @@ class Charts extends Component {
     this.state = {
       cpuPercentageUsed: 0,
       memoryPercentageUsed: 0,
-      interval: 2000,
+      interval: undefined,
+      hasSettings: false,
     }
   }
   componentDidMount() {
-    ipcRenderer.send(ev.INIT_APP)
+    ipcRenderer.send(ev.GET_SETTINGS)
     ipcRenderer.on(ev.STATS_UPDATED, this.onStatsUpdated)
+    ipcRenderer.on(ev.GET_SETTINGS, this.onGetSettings)
   }
   componentWillUnmount() {
     ipcRenderer.removeListener(ev.STATS_UPDATED, this.onStatsUpdated)
+    ipcRenderer.removeListener(ev.GET_SETTINGS, this.onGetSettings)
+  }
+  onGetSettings = (event, settings) => {
+    this.setState({
+      interval: settings.interval,
+      indicators: settings.indicators,
+      hasSettings: true,
+    })
   }
   onStatsUpdated = (event, data) => {
     this.setState({
@@ -31,9 +41,6 @@ class Charts extends Component {
       memoryPercentageUsed: data.result.memory.percentage.used,
       interval: data.interval,
     })
-  }
-  changeInterval = () => {
-    ipcRenderer.send(ev.INTERVAL_CHANGED, 2000)
   }
   goToSettings = () => {
     this.props.history.push('/settings')
@@ -53,6 +60,8 @@ class Charts extends Component {
     })
   }
   render() {
+    if (!this.state.hasSettings) return null
+
     return (
       <React.Fragment>
         <Segment compact secondary size="tiny" textAlign="right">
@@ -60,8 +69,18 @@ class Charts extends Component {
           <Icon name="power off" link onClick={this.exit} style={{ marginLeft: 10 }} />
         </Segment>
         <Segment>
-          <LineRealtimeChart type="cpu" currentValue={this.state.cpuPercentageUsed} interval={this.state.interval} />
-          <LineRealtimeChart type="mem" currentValue={this.state.memoryPercentageUsed} interval={this.state.interval} />
+          <LineRealtimeChart
+            type="cpu"
+            currentValue={this.state.cpuPercentageUsed}
+            interval={this.state.interval}
+            indicators={this.state.indicators}
+          />
+          <LineRealtimeChart
+            type="mem"
+            currentValue={this.state.memoryPercentageUsed}
+            interval={this.state.interval}
+            indicators={this.state.indicators}
+          />
         </Segment>
       </React.Fragment>
     )

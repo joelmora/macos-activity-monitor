@@ -3,50 +3,85 @@ import { Segment, Header, Form, Divider, Button, Radio, Icon, Table } from 'sema
 import { TwitterPicker } from 'react-color'
 import NumberInput from './NumberInput'
 
+const { ipcRenderer } = window.require('electron')
+const ev = require('../utils/events')
+
 class Settings extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      attributes: [
-        { name: 'CPU', isOn: true, color: '#36a2eb', showColorPicker: undefined },
-        { name: 'Memory', isOn: true, color: '#36eb7f', showColorPicker: undefined },
-      ],
-      interval: 5,
+      hasSettings: false,
     }
   }
   componentDidMount() {
+    ipcRenderer.send(ev.GET_SETTINGS)
     document.addEventListener('mousedown', this.handleClickOutside)
+    ipcRenderer.on(ev.GET_SETTINGS, this.onGetSettings)
   }
   componentWillUnmount() {
     document.removeEventListener('mousedown', this.handleClickOutside)
+    ipcRenderer.removeListener(ev.GET_SETTINGS, this.onGetSettings)
   }
+  onGetSettings = (event, settings) => {
+    this.setState({
+      indicators: settings.indicators,
+      interval: settings.interval,
+      hasSettings: true,
+    })
+  }
+  /**
+   * Changes a key in the indicator array
+   */
+  changeKey = (i, key, value) => {
+    let indicators = [...this.state.indicators]
+
+    indicators[i][key] = value
+
+    this.setState({ indicators })
+    this.changeSettings({ indicators })
+  }
+  /**
+   * Toggle an indicator in the indicator array
+   */
   toggle = (key, i) => {
-    let value = this.state.attributes[i][key]
+    let value = this.state.indicators[i][key]
     this.changeKey(i, key, !value)
   }
-  changeKey = (i, key, value) => {
-    let attributes = [...this.state.attributes]
+  /**
+   * Change indicator color
+   */
+  changeColor = (i, color) => {
+    this.changeKey(i, 'color', color.hex)
+  }
+  /**
+   * Change the interval
+   */
+  changeInterval = (ev, input) => {
+    let [cleanValue,] = input.value.toString().match(/(\d+)/) || new Array(1)
+    let interval = parseInt(cleanValue * 1000, 10)
 
-    attributes[i][key] = value
+    if (cleanValue) {
+      this.setState({ interval })
+    } else {
+      this.setState({ interval: 0 })
+    }
 
-    this.setState({ attributes })
+    this.changeSettings({ interval })
+  }
+  /**
+   * Send event to electron process to trigger setting change
+   */
+  changeSettings = (changedSettings) => {
+    let currentState = this.state
+    let settings = { ...currentState, ...changedSettings }
+    let { interval, indicators } = settings
+
+    ipcRenderer.send(ev.SETTINGS_CHANGED, { interval, indicators })
   }
   showColorPicker = (i) => {
     this.setState({ colorPickerIndex: i })
     this.toggle('showColorPicker', i)
-  }
-  changeColor = (i, color) => {
-    this.changeKey(i, 'color', color.hex)
-  }
-  changeInterval = (ev, input) => {
-    let [cleanValue,] = input.value.toString().match(/(\d+)/) || new Array(1)
-
-    if (cleanValue) {
-      this.setState({ interval: parseInt(cleanValue, 10) })
-    } else {
-      this.setState({ interval: 0 })
-    }
   }
   goToHome = () => {
     this.props.history.push('/')
@@ -61,6 +96,8 @@ class Settings extends Component {
     }
   }
   render() {
+    if (!this.state.hasSettings) return null
+
     return (
       <React.Fragment>
 
@@ -82,7 +119,7 @@ class Settings extends Component {
 
             <Table.Body>
               {
-                this.state.attributes.map((attr, i) =>
+                this.state.indicators.map((attr, i) =>
                   <Table.Row key={i}>
                     <Table.Cell>
                       {attr.name}
@@ -108,8 +145,8 @@ class Settings extends Component {
 
           <Form>
             <Form.Field inline>
-              <label>Interval</label>
-              <NumberInput value={this.state.interval} size="small" min={0} max={300} onChange={this.changeInterval} />
+              <label>Update Graph Every</label>
+              <NumberInput value={this.state.interval / 1000} size="small" min={0} max={300} onChange={this.changeInterval} />
               <span style={{ marginLeft: 10 }}>Seconds</span>
             </Form.Field>
           </Form>
