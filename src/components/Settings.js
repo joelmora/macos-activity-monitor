@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Segment, Header, Form, Divider, Button, Radio, Icon, Table } from 'semantic-ui-react'
+import { Segment, Header, Form, Divider, Button, Checkbox, Radio, Icon, Table } from 'semantic-ui-react'
 import { TwitterPicker } from 'react-color'
 import NumberInput from './NumberInput'
 
@@ -27,6 +27,7 @@ class Settings extends Component {
     this.setState({
       indicators: settings.indicators,
       interval: settings.interval,
+      launchOnLogin: settings.launchOnLogin,
       colorPickerIndex: settings.indicators.findIndex(ind => ind.showColorPicker === true),
       hasSettings: true,
     })
@@ -73,15 +74,21 @@ class Settings extends Component {
 
     this.changeSettings({ interval })
   }
+  toggleLaunchOnLogin = () => {
+    let launchOnLogin = !this.state.launchOnLogin
+
+    this.setState({ launchOnLogin })
+    this.changeSettings({ launchOnLogin })
+  }
   /**
    * Send event to electron process to trigger setting change
    */
   changeSettings = (changedSettings) => {
     let currentState = this.state
     let settings = { ...currentState, ...changedSettings }
-    let { interval, indicators } = settings
+    let { interval, indicators, launchOnLogin } = settings
 
-    ipcRenderer.send(ev.SETTINGS_CHANGED, { interval, indicators })
+    ipcRenderer.send(ev.SETTINGS_CHANGED, { interval, indicators, launchOnLogin })
   }
   showColorPicker = (i) => {
     this.setState({ colorPickerIndex: i })
@@ -156,6 +163,10 @@ class Settings extends Component {
               <label>Update Graph Every</label>
               <NumberInput value={this.state.interval / 1000} size="small" min={0} max={300} onChange={this.changeInterval} />
               <span style={{ marginLeft: 10 }}>Seconds</span>
+            </Form.Field>
+
+            <Form.Field inline>
+              <Checkbox label="Launch at Login" checked={this.state.launchOnLogin} onChange={this.toggleLaunchOnLogin} />
             </Form.Field>
           </Form>
 

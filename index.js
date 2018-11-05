@@ -1,6 +1,7 @@
 const menubar = require('menubar')
 const Store = require('electron-store')
 const Stats = require('./electron/Stats')
+const AutoLaunch = require('auto-launch')
 const ImageManager = require('./electron/ImageManager')
 const Path = require('path')
 const isDev = require('electron-is-dev')
@@ -10,6 +11,7 @@ const ev = require('./src/utils/events')
 let reactWindow
 let stats
 let imageManager
+let autoLaunch
 
 const store = new Store({
   name: 'user-preferences',
@@ -19,7 +21,8 @@ const store = new Store({
       { name: 'CPU', short: 'cpu', showGraph: true, showIcon: true, color: '#0693E3', showColorPicker: false },
       { name: 'Memory', short: 'mem', showGraph: true, showIcon: true, color: '#00D084', showColorPicker: false },
     ],
-  }
+    launchOnLogin: true,
+  },
 })
 
 //listeners
@@ -66,6 +69,11 @@ ipcMain.on(ev.SETTINGS_CHANGED, (event, settings) => {
 
   //save settings on store
   Object.keys(settings).map(key => {
+
+    if (key === 'launchOnLogin') {
+      enableDisableAutoStartup(settings[key])
+    }
+
     store.set(key, settings[key])
   })
 })
@@ -112,9 +120,32 @@ const getStoreKey = (key) => {
   return store.get(key)
 }
 
+/**
+ * Enable or Disable the auto start
+ * @param {*} launchOnLogin 
+ */
+const enableDisableAutoStartup = (launchOnLogin) => {
+  if (isDev) {
+    return
+  }
+
+  if (launchOnLogin) {
+    autoLaunch.enable()
+  } else {
+    autoLaunch.disable()
+  }
+}
 
 //main
 mb.on('ready', () => {
+
+  //auto launcher
+  autoLaunch = new AutoLaunch({
+    name: 'OSX Activity Monitor',
+    path: '/Applications/osx-activity-monitor.app',
+  })
+
+  enableDisableAutoStartup(getStoreKey('launchOnLogin'))
 
   imageManager = new ImageManager(setTrayImage, getStoreKey)
   stats = new Stats(emitEvent, getStoreKey)
