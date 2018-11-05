@@ -2,4 +2,4 @@
 node_modules/
 build/
 icons/iconTemplate.png
-osx-activity-monitor-darwin-x64/
+macos-activity-monitor-darwin-x64/

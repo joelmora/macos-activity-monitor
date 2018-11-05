@@ -141,8 +141,8 @@ mb.on('ready', () => {
 
   //auto launcher
   autoLaunch = new AutoLaunch({
-    name: 'OSX Activity Monitor',
-    path: '/Applications/osx-activity-monitor.app',
+    name: 'MacOS Activity Monitor',
+    path: '/Applications/macos-activity-monitor.app',
   })
 
   enableDisableAutoStartup(getStoreKey('launchOnLogin'))

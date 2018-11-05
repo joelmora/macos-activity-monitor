@@ -1,5 +1,5 @@
 {
-  "name": "osx-activity-monitor",
+  "name": "macos-activity-monitor",
   "version": "1.0.0",
   "description": "CPU and Memory stats in your tray bar",
   "keywords": [
@@ -20,7 +20,6 @@
     "react-start": "react-scripts start",
     "react-build": "yarn install && react-scripts build",
     "react-test": "react-scripts test --env=jsdom",
-    "react-eject": "react-scripts eject",
     "build-app": "yarn react-build && yarn electron-build"
   },
   "dependencies": {
