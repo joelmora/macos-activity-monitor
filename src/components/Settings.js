@@ -1,179 +1,183 @@
-import React, { Component } from 'react'
-import { Segment, Header, Form, Divider, Button, Checkbox, Radio, Icon, Table } from 'semantic-ui-react'
-import { TwitterPicker } from 'react-color'
-import NumberInput from './NumberInput'
+import React, { useState, useEffect } from "react";
+import { Segment, Header, Form, Divider, Button, Checkbox, Radio, Icon, Table } from "semantic-ui-react";
+import { TwitterPicker } from "react-color";
+import NumberInput from "./NumberInput";
 
-const { ipcRenderer } = window.require('electron')
-const ev = require('../utils/events')
+const { ipcRenderer } = window.require("electron");
+const ev = require("../utils/events");
 
-class Settings extends Component {
-  constructor(props) {
-    super(props)
+const Settings = ({ history }) => {
+  const [hasSettings, setHasSettings] = useState(false);
+  const [indicators, setIndicators] = useState([]);
+  const [interval, setInterval] = useState();
+  const [launchOnLogin, setLaunchOnLogin] = useState();
+  const [colorPickerIndex, setColorPickerIndex] = useState();
+  const [pickerContainer, setPickerContainer] = useState();
 
-    this.state = {
-      hasSettings: false,
-    }
-  }
-  componentDidMount() {
-    ipcRenderer.send(ev.GET_SETTINGS)
-    document.addEventListener('mousedown', this.handleClickOutside)
-    ipcRenderer.on(ev.GET_SETTINGS, this.onGetSettings)
-  }
-  componentWillUnmount() {
-    document.removeEventListener('mousedown', this.handleClickOutside)
-    ipcRenderer.removeListener(ev.GET_SETTINGS, this.onGetSettings)
-  }
-  onGetSettings = (event, settings) => {
-    this.setState({
-      indicators: settings.indicators,
-      interval: settings.interval,
-      launchOnLogin: settings.launchOnLogin,
-      colorPickerIndex: settings.indicators.findIndex(ind => ind.showColorPicker === true),
-      hasSettings: true,
-    })
-  }
+  const onGetSettings = (event, settings) => {
+    setIndicators(settings.indicators);
+    setInterval(settings.interval);
+    setLaunchOnLogin(settings.launchOnLogin);
+    setColorPickerIndex(settings.indicators.findIndex((ind) => ind.showColorPicker === true));
+    setHasSettings(true);
+  };
+
   /**
    * Changes a key in the indicator array
    */
-  changeKey = (i, key, value) => {
-    let indicators = [...this.state.indicators]
+  const changeKey = (i, key, value) => {
+    const indicatorsClone = [...indicators];
 
-    indicators[i][key] = value
+    indicatorsClone[i][key] = value;
 
-    this.setState({ indicators })
-    this.changeSettings({ indicators })
-  }
+    setIndicators(indicatorsClone);
+    changeSettings();
+  };
+
   /**
    * Toggle an indicator in the indicator array
    */
-  toggle = (key, i) => {
-    let value = this.state.indicators[i][key]
-    this.changeKey(i, key, !value)
+  const toggle = (key, i) => {
+    const value = indicators[i][key];
+    changeKey(i, key, !value);
 
     //redraw icons in case of on/off indicators
-    ipcRenderer.send(ev.REDRAW_ICONS)
-  }
+    ipcRenderer.send(ev.REDRAW_ICONS);
+  };
+
   /**
    * Change indicator color
    */
-  changeColor = (i, color) => {
-    this.changeKey(i, 'color', color.hex)
-  }
+  const changeColor = (i, color) => changeKey(i, "color", color.hex);
+
   /**
    * Change the interval
    */
-  changeInterval = (ev, input) => {
-    let [cleanValue,] = input.value.toString().match(/(\d+)/) || new Array(1)
-    let interval = parseInt(cleanValue * 1000, 10)
+  const changeInterval = (ev, input) => {
+    const [cleanValue] = input.value.toString().match(/(\d+)/) || new Array(1);
+    const interval = parseInt(cleanValue * 1000, 10);
 
     if (cleanValue) {
-      this.setState({ interval })
+      setInterval(interval);
     } else {
-      this.setState({ interval: 0 })
+      setInterval(0);
     }
 
-    this.changeSettings({ interval })
-  }
-  toggleLaunchOnLogin = () => {
-    let launchOnLogin = !this.state.launchOnLogin
+    changeSettings();
+  };
 
-    this.setState({ launchOnLogin })
-    this.changeSettings({ launchOnLogin })
-  }
+  const toggleLaunchOnLogin = () => {
+    setLaunchOnLogin(!launchOnLogin);
+    changeSettings();
+  };
+
   /**
    * Send event to electron process to trigger setting change
    */
-  changeSettings = (changedSettings) => {
-    let currentState = this.state
-    let settings = { ...currentState, ...changedSettings }
-    let { interval, indicators, launchOnLogin } = settings
+  const changeSettings = () => {
+    ipcRenderer.send(ev.SETTINGS_CHANGED, { interval, indicators, launchOnLogin });
+  };
 
-    ipcRenderer.send(ev.SETTINGS_CHANGED, { interval, indicators, launchOnLogin })
-  }
-  showColorPicker = (i) => {
-    this.setState({ colorPickerIndex: i })
-    this.toggle('showColorPicker', i)
-  }
-  goToHome = () => {
-    this.props.history.push('/')
-  }
-  handlePickerBlur = (node) => {
-    this.pickerContainer = node
-  }
-  handleClickOutside = (event) => {
+  const showColorPicker = (i) => {
+    setColorPickerIndex(i);
+    toggle("showColorPicker", i);
+  };
+
+  const goToHome = () => history.push("/");
+
+  const handlePickerBlur = (node) => setPickerContainer(node);
+
+  const handleClickOutside = (event) => {
     //clicked outside color picker
-    if (this.pickerContainer && !this.pickerContainer.contains(event.target)) {
-      this.toggle('showColorPicker', this.state.colorPickerIndex)
+    if (pickerContainer && !pickerContainer.contains(event.target)) {
+      toggle("showColorPicker", colorPickerIndex);
     }
-  }
-  render() {
-    if (!this.state.hasSettings) return null
+  };
 
-    return (
-      <React.Fragment>
+  useEffect(() => {
+    ipcRenderer.send(ev.GET_SETTINGS);
+    document.addEventListener("mousedown", handleClickOutside);
+    ipcRenderer.on(ev.GET_SETTINGS, onGetSettings);
 
-        <Segment compact secondary size="tiny" textAlign="center" className="flex flex-just-sb">
-          <Icon name="arrow left" link onClick={this.goToHome} />
-          <Header as='h4' style={{ margin: 0 }}>Settings</Header>
-          <div>&nbsp;</div>
-        </Segment>
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      ipcRenderer.removeListener(ev.GET_SETTINGS, onGetSettings);
+    };
+  }, []);
 
-        <Segment>
-          <Table basic="very" compact="very" size="small" unstackable celled columns={3}>
-            <Table.Header>
-              <Table.Row>
-                <Table.HeaderCell></Table.HeaderCell>
-                <Table.HeaderCell textAlign="center">Graph</Table.HeaderCell>
-                <Table.HeaderCell textAlign="center">Icon</Table.HeaderCell>
-                <Table.HeaderCell>Color</Table.HeaderCell>
+  if (!hasSettings) return null;
+
+  return (
+    <>
+      <Segment compact secondary size="tiny" textAlign="center" className="flex flex-just-sb">
+        <Icon name="arrow left" link onClick={goToHome} />
+        <Header as="h4" style={{ margin: 0 }}>
+          Settings
+        </Header>
+        <div>&nbsp;</div>
+      </Segment>
+
+      <Segment>
+        <Table basic="very" compact="very" size="small" unstackable celled columns={3}>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell />
+              <Table.HeaderCell textAlign="center">Graph</Table.HeaderCell>
+              <Table.HeaderCell textAlign="center">Icon</Table.HeaderCell>
+              <Table.HeaderCell>Color</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+
+          <Table.Body>
+            {indicators.map((attr, i) => (
+              <Table.Row key={i}>
+                <Table.Cell>{attr.name}</Table.Cell>
+                <Table.Cell textAlign="center">
+                  <Radio toggle checked={attr.showGraph} onChange={toggle.bind(this, "showGraph", i)} />
+                </Table.Cell>
+                <Table.Cell textAlign="center">
+                  <Radio toggle checked={attr.showIcon} onChange={toggle.bind(this, "showIcon", i)} />
+                </Table.Cell>
+                <Table.Cell>
+                  <Button
+                    size="tiny"
+                    icon="dropdown"
+                    style={{ backgroundColor: attr.color }}
+                    onClick={showColorPicker.bind(this, i)}
+                  />
+                  {attr.showColorPicker && (
+                    <div ref={handlePickerBlur} style={{ position: "absolute", zIndex: 5000, marginLeft: -238 }}>
+                      <TwitterPicker onChangeComplete={changeColor.bind(this, i)} triangle="top-right" />
+                    </div>
+                  )}
+                </Table.Cell>
               </Table.Row>
-            </Table.Header>
+            ))}
+          </Table.Body>
+        </Table>
 
-            <Table.Body>
-              {
-                this.state.indicators.map((attr, i) =>
-                  <Table.Row key={i}>
-                    <Table.Cell>
-                      {attr.name}
-                    </Table.Cell>
-                    <Table.Cell textAlign="center">
-                      <Radio toggle checked={attr.showGraph} onChange={this.toggle.bind(this, 'showGraph', i)} />
-                    </Table.Cell>
-                    <Table.Cell textAlign="center">
-                      <Radio toggle checked={attr.showIcon} onChange={this.toggle.bind(this, 'showIcon', i)} />
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Button size="tiny" icon="dropdown" style={{ backgroundColor: attr.color }} onClick={this.showColorPicker.bind(this, i)} />
-                      {attr.showColorPicker &&
-                        <div ref={this.handlePickerBlur} style={{ position: 'absolute', zIndex: 5000, marginLeft: -238 }} >
-                          <TwitterPicker onChangeComplete={this.changeColor.bind(this, i)} triangle="top-right" />
-                        </div>
-                      }
-                    </Table.Cell>
-                  </Table.Row>
-                )
-              }
-            </Table.Body>
-          </Table>
+        <Divider />
 
-          <Divider />
+        <Form>
+          <Form.Field inline>
+            <label>Update Graph Every</label>
+            <NumberInput
+              value={interval / 1000}
+              size="small"
+              min={0}
+              max={300}
+              onChange={changeInterval}
+            />
+            <span style={{ marginLeft: 10 }}>Seconds</span>
+          </Form.Field>
 
-          <Form>
-            <Form.Field inline>
-              <label>Update Graph Every</label>
-              <NumberInput value={this.state.interval / 1000} size="small" min={0} max={300} onChange={this.changeInterval} />
-              <span style={{ marginLeft: 10 }}>Seconds</span>
-            </Form.Field>
+          <Form.Field inline>
+            <Checkbox label="Launch at Login" checked={launchOnLogin} onChange={toggleLaunchOnLogin} />
+          </Form.Field>
+        </Form>
+      </Segment>
+    </>
+  );
+};
 
-            <Form.Field inline>
-              <Checkbox label="Launch at Login" checked={this.state.launchOnLogin} onChange={this.toggleLaunchOnLogin} />
-            </Form.Field>
-          </Form>
-
-        </Segment>
-      </React.Fragment>
-    )
-  }
-}
-
-export default Settings
+export default Settings;

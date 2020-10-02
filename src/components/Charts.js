@@ -1,109 +1,120 @@
-import React, { Component } from 'react'
-import LineRealtimeChart from './LineRealtimeChart'
-import { Segment, Icon } from 'semantic-ui-react'
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
+import React, { useState, useEffect, useMemo } from "react";
+import LineRealtimeChart from "./LineRealtimeChart";
+import { Segment, Icon } from "semantic-ui-react";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
-const MySwal = withReactContent(Swal)
-const { ipcRenderer } = window.require('electron')
-const ev = require('../utils/events')
+const MySwal = withReactContent(Swal);
+const { ipcRenderer } = window.require("electron");
+const ev = require("../utils/events");
 
-class Charts extends Component {
-  constructor(props) {
-    super(props)
+const Charts = ({ history }) => {
+  const [stats, setStats] = useState([]);
+  const [cpuPercentageUsed, setCpuPercentageUsed] = useState(-1);
+  const [indicators, setIndicators] = useState([]);
+  const [memPercentageUsed, setMemPercentageUsed] = useState(-1);
+  const [interval, setInterval] = useState();
+  const [hasSettings, setHasSettings] = useState(false);
+  const [hasStats, setHasStats] = useState(false);
 
-    this.state = {
-      stats: [],
-      cpuPercentageUsed: -1,
-      memPercentageUsed: -1,
-      interval: undefined,
-      hasSettings: false,
-      hasStats: false,
-    }
-  }
-  componentDidMount() {
-    ipcRenderer.send(ev.GET_SETTINGS)
-    ipcRenderer.send(ev.GET_STATS)
-    ipcRenderer.on(ev.STATS_UPDATED, this.onStatsUpdated)
-    ipcRenderer.on(ev.GET_SETTINGS, this.onGetSettings)
-    ipcRenderer.on(ev.GET_STATS, this.onGetStats)
-  }
-  componentWillUnmount() {
-    ipcRenderer.removeListener(ev.STATS_UPDATED, this.onStatsUpdated)
-    ipcRenderer.removeListener(ev.GET_SETTINGS, this.onGetSettings)
-    ipcRenderer.removeListener(ev.GET_STATS, this.onGetStats)
-  }
-  onGetStats = (event, stats) => {
-    this.setState({
-      stats: stats,
-      hasStats: true,
-    })
-  }
-  onGetSettings = (event, settings) => {
-    this.setState({
-      interval: settings.interval,
-      indicators: settings.indicators,
-      hasSettings: true,
-    })
-  }
-  onStatsUpdated = (event, data) => {
-    this.setState({
-      cpuPercentageUsed: data.results.slice(-1)[0].cpu.percentage.used,
-      memPercentageUsed: data.results.slice(-1)[0].memory.percentage.used,
-      interval: data.interval,
-    })
-  }
-  goToSettings = () => {
-    this.props.history.push('/settings')
-  }
-  exit = () => {
+  const onGetStats = (event, stats) => {
+    setStats(stats);
+    setHasStats(true);
+  };
+
+  const onGetSettings = (event, settings) => {
+    setInterval(settings.interval);
+    setIndicators(settings.indicators);
+    setHasSettings(true);
+  };
+
+  const onStatsUpdated = (event, data) => {
+    setCpuPercentageUsed(data.results.slice(-1)[0].cpu.percentage.used);
+    setMemPercentageUsed(data.results.slice(-1)[0].memory.percentage.used);
+    setInterval(data.interval);
+  };
+
+  const goToSettings = () => {
+    history.push("/settings");
+  };
+
+  const exit = () => {
     MySwal.fire({
-      type: 'question',
-      text: 'Are you sure you want to exit?',
-      confirmButtonText: 'Yes',
-      cancelButtonText: 'No',
+      type: "question",
+      text: "Are you sure you want to exit?",
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
       showCancelButton: true,
       reverseButtons: true,
-    }).then(response => {
+    }).then((response) => {
       if (response.value) {
-        ipcRenderer.send(ev.EXIT_APP)
+        ipcRenderer.send(ev.EXIT_APP);
       }
-    })
-  }
-  render() {
-    if (!this.state.hasSettings || !this.state.hasStats) return null
+    });
+  };
 
-    let stats = this.state.stats.map(result => {
-      return { cpu: result.cpu.percentage.used, mem: result.memory.percentage.used, }
-    })
+  const statsFormat = useMemo(
+    () =>
+      stats.map((result) => {
+        return { cpu: result.cpu.percentage.used, mem: result.memory.percentage.used };
+      }),
+    [stats]
+  );
 
-    return (
-      <React.Fragment>
-        <Segment compact secondary size="tiny" textAlign="right">
-          <Icon name="setting" link onClick={this.goToSettings} />
-          <Icon name="power off" link onClick={this.exit} style={{ marginLeft: 10 }} />
-        </Segment>
-        <Segment>
-          {
-            this.state.indicators.map(indicator => {
-              if (!indicator.showGraph) return null
+  useEffect(() => {
+    ipcRenderer.send(ev.GET_SETTINGS);
+    ipcRenderer.send(ev.GET_STATS);
+    ipcRenderer.on(ev.STATS_UPDATED, onStatsUpdated);
+    ipcRenderer.on(ev.GET_SETTINGS, onGetSettings);
+    ipcRenderer.on(ev.GET_STATS, onGetStats);
 
-              return (
-                <LineRealtimeChart
-                  key={indicator.short}
-                  indicator={indicator}
-                  currentValue={this.state[indicator.short + 'PercentageUsed']}
-                  interval={this.state.interval}
-                  indicators={this.state.indicators}
-                  stats={stats}
-                />
-              )
-            })
+    return () => {
+      ipcRenderer.removeListener(ev.STATS_UPDATED, onStatsUpdated);
+      ipcRenderer.removeListener(ev.GET_SETTINGS, onGetSettings);
+      ipcRenderer.removeListener(ev.GET_STATS, onGetStats);
+    };
+  }, []);
+
+  if (!hasSettings || !hasStats) return null;
+
+  return (
+    <>
+      <Segment compact secondary size="tiny" textAlign="right">
+        <Icon name="setting" link onClick={goToSettings} />
+        <Icon name="power off" link onClick={exit} style={{ marginLeft: 10 }} />
+      </Segment>
+      <Segment>
+        {indicators.map((indicator) => {
+          if (!indicator.showGraph) return null;
+
+          let currentValue;
+
+          switch (indicator.short) {
+            case "cpu":
+              currentValue = cpuPercentageUsed;
+              break;
+            case "mem":
+              currentValue = memPercentageUsed;
+              break;
+            default:
+              currentValue = undefined;
+              break;
           }
-        </Segment>
-      </React.Fragment>
-    )
-  }
-}
 
-export default Charts
+          return (
+            <LineRealtimeChart
+              key={indicator.short}
+              indicator={indicator}
+              currentValue={currentValue}
+              interval={interval}
+              indicators={indicators}
+              stats={statsFormat}
+            />
+          );
+        })}
+      </Segment>
+    </>
+  );
+};
+
+export default Charts;
