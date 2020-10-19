@@ -11,101 +11,76 @@ const getRGBA = (hex, opacity = 1) => {
   return `rgba(${a.red}, ${a.green}, ${a.blue}, ${opacity})`;
 };
 
-const LineRealtimeChart = ({ indicators, indicator, interval, stats, currentValue }) => {
-  const setting = useMemo(() => indicators.find((ind) => ind.short === indicator.short), [indicators, indicator]);
+const getChartOptions = (interval) => ({
+  //title
+  legend: { display: false },
+  plugins: {
+    streaming: {
+      delay: interval,
+      frameRate: 12,
+      duration: interval * 25,
+    },
+  },
+  //animations
+  animation: { duration: 0 },
+  hover: { animationDuration: 0 },
+  responsiveAnimationDuration: 0,
+  //tooltips
+  tooltips: { enabled: false },
+  //elements
+  elements: { point: { radius: 0, hoverRadius: 0 } },
+  //scales
+  scales: {
+    xAxes: [{ type: "realtime", ticks: { display: false } }],
+    yAxes: [{ ticks: { suggestedMin: 1, suggestedMax: 100 } }],
+  },
+});
+
+const getChartData = (interval, stats, setting, indicator) => {
   const borderColor = getRGBA(setting.color);
   const backgroundColor = getRGBA(setting.color, 0.5);
 
-  const chartData = useMemo(
-    () => {
-      //render previous stats if exist
-      const data = [];
-      let date = Date.now() - (interval * stats.length + 1);
+  //render previous stats if exist
+  const data = [];
+  let date = Date.now() - (interval * stats.length + 1);
 
-      //zero value
-      data.push({ x: date, y: 0 });
-      date += interval;
+  //zero value
+  data.push({ x: date, y: 0 });
+  date += interval;
 
-      for (let stat of stats) {
-        data.push({ x: date, y: stat[indicator.short] });
-        date += interval;
-      }
+  for (let stat of stats) {
+    data.push({ x: date, y: stat[indicator.short] });
+    date += interval;
+  }
 
-      //push the current value stat
-      if (currentValue !== -1) {
-        data.push({ x: Date.now(), y: currentValue });
-      }
+  return {
+    datasets: [
+      {
+        label: indicator.short,
+        data,
+        borderColor: borderColor,
+        backgroundColor: backgroundColor,
+        borderWidth: 2,
+        lineTension: 0,
+      },
+    ],
+  };
+};
 
-      return {
-        datasets: [
-          {
-            label: indicator.short,
-            data: data,
-            borderColor: borderColor,
-            backgroundColor: backgroundColor,
-            borderWidth: 2,
-            lineTension: 0,
-          },
-        ],
-      };
-    },
-    [interval, stats, currentValue]
-  );
+const LineRealtimeChart = ({ indicators, indicator, interval, stats, currentValue }) => {
+  const setting = useMemo(() => indicators.find((ind) => ind.short === indicator.short), [indicators, indicator]);
+  const chartDataBase = useMemo(() => getChartData(interval, stats, setting, indicator), [
+    interval,
+    stats,
+    setting,
+    indicator,
+  ]);
+  const chartOptions = useMemo(() => getChartOptions(interval), [interval]);
 
-  const chartOptions = useMemo(
-    () => ({
-      //title
-      legend: {
-        display: false,
-      },
-      plugins: {
-        streaming: {
-          delay: interval,
-          frameRate: 12,
-          duration: interval * 25,
-        },
-      },
-      //animations
-      animation: {
-        duration: 0,
-      },
-      hover: {
-        animationDuration: 0,
-      },
-      responsiveAnimationDuration: 0,
-      //tooltips
-      tooltips: {
-        enabled: false,
-      },
-      //elements
-      elements: {
-        point: {
-          radius: 0,
-          hoverRadius: 0,
-        },
-      },
-      //scales
-      scales: {
-        xAxes: [
-          {
-            type: "realtime",
-            ticks: {
-              display: false,
-            },
-          },
-        ],
-        yAxes: [
-          {
-            ticks: {
-              suggestedMin: 1,
-              suggestedMax: 100,
-            },
-          },
-        ],
-      },
-    }),
-    [interval]
-  );
+  //push the current value stat, this has to be done this way so realtime plugin can work
+  if (currentValue !== -1) {
+    chartDataBase.datasets[0].data.push({ x: Date.now(), y: currentValue });
+  }
 
   useEffect(() => {
     Chart.pluginService.register({
@@ -124,7 +99,7 @@ const LineRealtimeChart = ({ indicators, indicator, interval, stats, currentValu
           {indicator.name}
         </Header>
       </div>
-      <Line id={"chart" + indicator.short} data={chartData} options={chartOptions} width={390} height={130} />
+      <Line id={"chart" + indicator.short} data={chartDataBase} options={chartOptions} width={390} height={130} />
     </>
   );
 };

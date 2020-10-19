@@ -17,14 +17,14 @@
     "electron-build": "electron-packager . --platform=darwin --overwrite --icon=icons/icon.icns",
     "electron-start": "electron .",
     "create-icon": "png2icns icons/app-icon.png -s 16,32,64,128,256,512 -o icons/icon.icns",
-    "react-start": "react-scripts start",
+    "react-start": "BROWSER=none react-scripts start",
     "react-build": "yarn install && react-scripts build",
     "react-test": "react-scripts test --env=jsdom",
     "build-app": "yarn react-build && yarn electron-build"
   },
   "dependencies": {
     "auto-launch": "^5.0.5",
-    "chart.js": "^2.7.2",
+    "chart.js": "2.7.2",
     "chartjs-plugin-streaming": "^1.6.1",
     "electron-is-dev": "^1.0.1",
     "electron-store": "^2.0.0",

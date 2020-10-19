@@ -9,7 +9,7 @@ const ev = require("../utils/events");
 const Settings = ({ history }) => {
   const [hasSettings, setHasSettings] = useState(false);
   const [indicators, setIndicators] = useState([]);
-  const [interval, setInterval] = useState();
+  const [interval, setInterval] = useState(0);
   const [launchOnLogin, setLaunchOnLogin] = useState();
   const [colorPickerIndex, setColorPickerIndex] = useState();
   const [pickerContainer, setPickerContainer] = useState();
@@ -31,7 +31,6 @@ const Settings = ({ history }) => {
     indicatorsClone[i][key] = value;
 
     setIndicators(indicatorsClone);
-    changeSettings();
   };
 
   /**
@@ -62,13 +61,10 @@ const Settings = ({ history }) => {
     } else {
       setInterval(0);
     }
-
-    changeSettings();
   };
 
   const toggleLaunchOnLogin = () => {
     setLaunchOnLogin(!launchOnLogin);
-    changeSettings();
   };
 
   /**
@@ -104,6 +100,15 @@ const Settings = ({ history }) => {
       ipcRenderer.removeListener(ev.GET_SETTINGS, onGetSettings);
     };
   }, []);
+
+  useEffect(
+    () => {
+      if (hasSettings) {
+        changeSettings();
+      }
+    },
+    [interval, indicators, launchOnLogin]
+  );
 
   if (!hasSettings) return null;
 
@@ -161,13 +166,7 @@ const Settings = ({ history }) => {
         <Form>
           <Form.Field inline>
             <label>Update Graph Every</label>
-            <NumberInput
-              value={interval / 1000}
-              size="small"
-              min={0}
-              max={300}
-              onChange={changeInterval}
-            />
+            <NumberInput value={interval / 1000} size="small" min={0} max={300} onChange={changeInterval} />
             <span style={{ marginLeft: 10 }}>Seconds</span>
           </Form.Field>
 
