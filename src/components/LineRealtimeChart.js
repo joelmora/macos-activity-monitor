@@ -1,8 +1,8 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo } from "react";
 import PropTypes from "prop-types";
-import { Chart } from "react-chartjs-2";
+import moment from "moment";
 import { Line } from "react-chartjs-2";
-import RealTimePlugin from "chartjs-plugin-streaming";
+import "chartjs-plugin-streaming";
 import hexRgb from "hex-rgb";
 import { Header } from "semantic-ui-react";
 
@@ -11,27 +11,42 @@ const getRGBA = (hex, opacity = 1) => {
   return `rgba(${a.red}, ${a.green}, ${a.blue}, ${opacity})`;
 };
 
-const getChartOptions = (interval) => ({
+const getChartOptions = (indicator, interval) => ({
   //title
   legend: { display: false },
-  plugins: {
-    streaming: {
-      delay: interval,
-      frameRate: 12,
-      duration: interval * 25,
-    },
-  },
   //animations
   animation: { duration: 0 },
   hover: { animationDuration: 0 },
   responsiveAnimationDuration: 0,
   //tooltips
-  tooltips: { enabled: false },
+  tooltips: {
+    enabled: true,
+    callbacks: {
+      title: function(tooltipItem) {
+        const eventTime = moment(tooltipItem[0].xLabel)
+        return `${eventTime.toNow(true)} ago`;
+      },
+      label: function(tooltipItem) {
+        return `${indicator.name}: ${tooltipItem.yLabel}`;
+      },
+    },
+  },
   //elements
-  elements: { point: { radius: 0, hoverRadius: 0 } },
+  elements: { point: { radius: 1, hoverRadius: 5 } },
   //scales
   scales: {
-    xAxes: [{ type: "realtime", ticks: { display: false } }],
+    xAxes: [
+      {
+        type: "realtime",
+        realtime: {
+          refresh: interval,
+          duration: interval * 25, // display last 25 results
+          delay: interval, // wait "x" seconds before diplay to the user
+        },
+        ticks: { display: false },
+        time: { unit: "millisecond", stepSize: interval },
+      },
+    ],
     yAxes: [{ ticks: { suggestedMin: 1, suggestedMax: 100 } }],
   },
 });
@@ -75,18 +90,12 @@ const LineRealtimeChart = ({ indicators, indicator, interval, stats, currentValu
     setting,
     indicator,
   ]);
-  const chartOptions = useMemo(() => getChartOptions(interval), [interval]);
+  const chartOptions = useMemo(() => getChartOptions(indicator, interval), [indicator, interval]);
 
   //push the current value stat, this has to be done this way so realtime plugin can work
   if (currentValue !== -1) {
     chartDataBase.datasets[0].data.push({ x: Date.now(), y: currentValue });
   }
-
-  useEffect(() => {
-    Chart.pluginService.register({
-      realtime: RealTimePlugin,
-    });
-  }, []);
 
   return (
     <>

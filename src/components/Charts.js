@@ -10,28 +10,33 @@ const ev = require("../utils/events");
 
 const Charts = ({ history }) => {
   const [stats, setStats] = useState([]);
-  const [cpuPercentageUsed, setCpuPercentageUsed] = useState(-1);
+  const [currentRecord, setCurrentRecord] = useState({ cpuPercentageUsed: -1, memPercentageUsed: -1 });
   const [indicators, setIndicators] = useState([]);
-  const [memPercentageUsed, setMemPercentageUsed] = useState(-1);
-  const [interval, setInterval] = useState();
   const [hasSettings, setHasSettings] = useState(false);
   const [hasStats, setHasStats] = useState(false);
 
   const onGetStats = (event, stats) => {
-    setStats(stats);
+    // performance wise saves only last 30 stats
+    setStats(stats.slice(-30));
     setHasStats(true);
   };
 
   const onGetSettings = (event, settings) => {
-    setInterval(settings.interval);
+    setCurrentRecord({
+      ...currentRecord,
+      interval: settings.interval,
+    });
     setIndicators(settings.indicators);
     setHasSettings(true);
   };
 
   const onStatsUpdated = (event, data) => {
-    setCpuPercentageUsed(data.results.slice(-1)[0].cpu.percentage.used);
-    setMemPercentageUsed(data.results.slice(-1)[0].memory.percentage.used);
-    setInterval(data.interval);
+    setCurrentRecord({
+      cpuPercentageUsed: data.results.slice(-1)[0].cpu.percentage.used,
+      memPercentageUsed: data.results.slice(-1)[0].memory.percentage.used,
+      interval: data.interval,
+      timestamp: new Date(), // force re-render every "x" seconds
+    });
   };
 
   const goToSettings = () => {
@@ -76,6 +81,8 @@ const Charts = ({ history }) => {
   }, []);
 
   if (!hasSettings || !hasStats) return null;
+
+  const { cpuPercentageUsed, memPercentageUsed, interval } = currentRecord;
 
   return (
     <>
