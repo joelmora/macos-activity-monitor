@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Segment, Header, Form, Divider, Button, Checkbox, Radio, Icon, Table } from "semantic-ui-react";
+import { Segment, Header, Form, Divider, Checkbox, Radio, Icon, Table, Dropdown } from "semantic-ui-react";
 import { TwitterPicker } from "react-color";
 import NumberInput from "./NumberInput";
 
@@ -11,14 +11,11 @@ const Settings = ({ history }) => {
   const [indicators, setIndicators] = useState([]);
   const [interval, setInterval] = useState(0);
   const [launchOnLogin, setLaunchOnLogin] = useState();
-  const [colorPickerIndex, setColorPickerIndex] = useState();
-  const [pickerContainer, setPickerContainer] = useState();
 
   const onGetSettings = (event, settings) => {
     setIndicators(settings.indicators);
     setInterval(settings.interval);
     setLaunchOnLogin(settings.launchOnLogin);
-    setColorPickerIndex(settings.indicators.findIndex((ind) => ind.showColorPicker === true));
     setHasSettings(true);
   };
 
@@ -74,29 +71,13 @@ const Settings = ({ history }) => {
     ipcRenderer.send(ev.SETTINGS_CHANGED, { interval, indicators, launchOnLogin });
   };
 
-  const showColorPicker = (i) => {
-    setColorPickerIndex(i);
-    toggle("showColorPicker", i);
-  };
-
   const goToHome = () => history.push("/");
-
-  const handlePickerBlur = (node) => setPickerContainer(node);
-
-  const handleClickOutside = (event) => {
-    //clicked outside color picker
-    if (pickerContainer && !pickerContainer.contains(event.target)) {
-      toggle("showColorPicker", colorPickerIndex);
-    }
-  };
 
   useEffect(() => {
     ipcRenderer.send(ev.GET_SETTINGS);
-    document.addEventListener("mousedown", handleClickOutside);
     ipcRenderer.on(ev.GET_SETTINGS, onGetSettings);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       ipcRenderer.removeListener(ev.GET_SETTINGS, onGetSettings);
     };
   }, []);
@@ -144,17 +125,20 @@ const Settings = ({ history }) => {
                   <Radio toggle checked={attr.showIcon} onChange={toggle.bind(this, "showIcon", i)} />
                 </Table.Cell>
                 <Table.Cell>
-                  <Button
-                    size="tiny"
+                  <Dropdown
+                    button
                     icon="dropdown"
-                    style={{ backgroundColor: attr.color }}
-                    onClick={showColorPicker.bind(this, i)}
-                  />
-                  {attr.showColorPicker && (
-                    <div ref={handlePickerBlur} style={{ position: "absolute", zIndex: 5000, marginLeft: -238 }}>
-                      <TwitterPicker onChangeComplete={changeColor.bind(this, i)} triangle="top-right" />
-                    </div>
-                  )}
+                    compact
+                    style={{ backgroundColor: attr.color, paddingLeft: "0.3em" }}
+                  >
+                    <Dropdown.Menu>
+                      <Dropdown.Item>
+                        <div style={{ position: "absolute", zIndex: 5000, marginLeft: -238 }}>
+                          <TwitterPicker onChangeComplete={changeColor.bind(this, i)} triangle="top-right" />
+                        </div>
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
                 </Table.Cell>
               </Table.Row>
             ))}
