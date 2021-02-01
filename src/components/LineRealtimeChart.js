@@ -23,7 +23,7 @@ const getChartOptions = (indicator, interval) => ({
     enabled: true,
     callbacks: {
       title: function(tooltipItem) {
-        const eventTime = moment(tooltipItem[0].xLabel)
+        const eventTime = moment(new Date(tooltipItem[0].xLabel))
         return `${eventTime.toNow(true)} ago`;
       },
       label: function(tooltipItem) {
