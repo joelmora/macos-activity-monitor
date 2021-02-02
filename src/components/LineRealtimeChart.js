@@ -41,7 +41,7 @@ const getChartOptions = (indicator, interval) => ({
         realtime: {
           refresh: interval,
           duration: interval * 25, // display last 25 results
-          delay: interval, // wait "x" seconds before diplay to the user
+          delay: interval * 2, // wait "x" seconds before display to the user
         },
         ticks: { display: false },
         time: { unit: "millisecond", stepSize: interval },

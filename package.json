@@ -1,6 +1,6 @@
 {
   "name": "macos-activity-monitor",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "CPU and Memory stats in your tray bar",
   "keywords": [
     "stats",
@@ -10,7 +10,7 @@
     "memory"
   ],
   "author": "Joel Mora <joelmora16@gmail.com>",
-  "main": "index.js",
+  "main": "./index.js",
   "license": "MIT",
   "homepage": "./",
   "scripts": {
@@ -23,14 +23,13 @@
     "build-app": "yarn react-build && yarn electron-build"
   },
   "dependencies": {
-    "auto-launch": "^5.0.5",
     "chart.js": "2.7.2",
     "chartjs-plugin-streaming": "^1.6.1",
-    "electron-is-dev": "^1.2.0",
-    "electron-store": "^2.0.0",
+    "electron-store": "^7.0.1",
+    "electron-util": "^0.14.2",
     "hex-rgb": "^4.2.0",
     "jimp": "^0.5.0",
-    "menubar": "^5.2.3",
+    "moment": "^2.10.2",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-chartjs-2": "^2.7.4",
@@ -45,8 +44,9 @@
   },
   "devDependencies": {
     "babel-eslint": "^9.0.0",
-    "electron": "^3.0.0",
-    "electron-packager": "^12.1.2",
+    "electron": "^11.2.1",
+    "electron-packager": "^15.2.0",
+    "electron-builder": "^22.9.1",
     "eslint": "^5.6.0",
     "eslint-plugin-react": "^7.11.1",
     "png2icns": "^0.0.1"
