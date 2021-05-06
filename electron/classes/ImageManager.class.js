@@ -1,16 +1,18 @@
-const Jimp = require("Jimp");
+const Jimp = require("jimp");
+const path = require("path");
 
 const HEIGHT = 22;
 const COMPACT_W = 26;
 const SPACE_W = 5;
 
-const imageDir = __dirname + "/../icons/";
-const fontDir = __dirname + "/../fonts/";
+const imageDir = path.join(__dirname, "../assets/icons/");
+const fontDir = path.join(__dirname, "../assets/fonts/");
 
 class ImageManager {
-  constructor(setTrayImage, getSetting) {
+  constructor(setTrayImage, getSetting, tempPath) {
     this.setTrayImage = setTrayImage;
     this.getSetting = getSetting;
+    this.tempPath = tempPath;
     this.icons = [];
 
     this.allImages = [{ type: "stat", src: imageDir + "statTemplate.png" }];
@@ -26,7 +28,7 @@ class ImageManager {
   /**
    * Loads all images available and return it
    */
-  preloadAll = async () => this.getImages();
+  preloadAll = async () => await this.getImages();
 
   /**
    * Get all images recursively
@@ -127,16 +129,16 @@ class ImageManager {
       x += COMPACT_W;
     }
 
-    await finalIcon.writeAsync(imageDir + "iconTemplate.png");
+    await finalIcon.writeAsync(path.join(this.tempPath, "iconTemplate.png"));
 
     //set icons on tray
-    this.setTrayImage(imageDir + "iconTemplate.png");
+    this.setTrayImage(path.join(this.tempPath, "iconTemplate.png"));
   };
 
   /**
    * Redraw icons
    */
-  redrawIcons = async () => this.drawIcons(this.icons);;
+  redrawIcons = async () => await this.drawIcons(this.icons);
 }
 
 module.exports = ImageManager;

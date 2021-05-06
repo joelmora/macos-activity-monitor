@@ -1,6 +1,6 @@
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
-const ev = require("../src/utils/events");
+const ev = require("../utils/events");
 
 const cpuUsageCommand = 'top -l 1 -stats "pid,command,cpu" -n 0 |grep CPU';
 const memoryStatsCommand = "vm_stat";

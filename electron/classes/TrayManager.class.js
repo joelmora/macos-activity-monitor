@@ -1,5 +1,7 @@
-const { Tray } = require("electron");
+const { Tray, Menu } = require("electron");
 const path = require("path");
+
+const statTemplateDir = "../assets/icons/statTemplate.png";
 
 class TrayManager {
   constructor(mainWindow, dock) {
@@ -28,7 +30,20 @@ class TrayManager {
     this.dock.hide();
   };
 
+  rightClickMenu = () => {
+    const menu = [
+      {
+        role: "quit",
+        accelerator: "Command+Q",
+      },
+    ];
+    
+    this.tray.popUpContextMenu(Menu.buildFromTemplate(menu));
+  };
+
   toggleWindow = () => {
+    //FIXME doesn't work when you click outside the window
+    //FIXME doesn't work on multiples desktops
     if (this.mainWindow.isVisible()) {
       this.mainWindow.hide();
     } else {
@@ -41,11 +56,11 @@ class TrayManager {
   };
 
   createTray = () => {
-    this.tray = new Tray(path.join(__dirname, "../icons/statTemplate.png"));
-    // this.tray = new Tray();
+    this.tray = new Tray(path.join(__dirname, statTemplateDir));
     this.tray.setIgnoreDoubleClickEvents(true);
 
     this.tray.on("click", this.toggleWindow);
+    this.tray.on("right-click", this.rightClickMenu);
   };
 }
 
