@@ -22,12 +22,13 @@ class TrayManager {
   showWindow = () => {
     const position = this.getWindowPosition();
     this.mainWindow.setPosition(position.x, position.y, false);
-    this.mainWindow.show();
     this.mainWindow.setVisibleOnAllWorkspaces(true);
-    this.mainWindow.focus();
-    this.mainWindow.setVisibleOnAllWorkspaces(false);
-
+    this.mainWindow.show();
+    //FIXME: minor glitch when hiding
     this.dock.hide();
+    this.mainWindow.focus();
+
+    //FIXME minor glitch showing dock icon
   };
 
   rightClickMenu = () => {
@@ -37,13 +38,11 @@ class TrayManager {
         accelerator: "Command+Q",
       },
     ];
-    
+
     this.tray.popUpContextMenu(Menu.buildFromTemplate(menu));
   };
 
   toggleWindow = () => {
-    //FIXME doesn't work when you click outside the window
-    //FIXME doesn't work on multiples desktops
     if (this.mainWindow.isVisible()) {
       this.mainWindow.hide();
     } else {

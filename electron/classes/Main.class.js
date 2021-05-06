@@ -66,6 +66,7 @@ class Main {
       frame: false,
       fullscreenable: false,
       resizable: false,
+      alwaysOnTop: true,
       webPreferences: {
         devTools: isDev,
         nodeIntegration: true,
