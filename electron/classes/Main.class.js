@@ -67,8 +67,7 @@ class Main {
       fullscreenable: false,
       resizable: false,
       webPreferences: {
-        // devTools: isDev,
-        devTools: true,
+        devTools: isDev,
         nodeIntegration: true,
       },
     });
@@ -85,6 +84,10 @@ class Main {
     this.eventManager.emitEvent(event, data);
   };
 
+  exitApp = () => {
+    app.exit()
+  };
+
   init = () => {
     // Wait until the app is ready
     app.once("ready", async () => {
@@ -97,7 +100,7 @@ class Main {
       const imageManager = new ImageManager(this.setTrayImage, this.getStoreKey, app.getPath("temp"));
       const stats = new Stats(this.emitEvent, this.getStoreKey);
 
-      this.eventManager = new EventManager(stats, imageManager, this.store);
+      this.eventManager = new EventManager(stats, imageManager, this.store, this.exitApp);
       this.eventManager.listen();
 
       await imageManager.preloadAll();

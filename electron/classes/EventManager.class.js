@@ -3,10 +3,11 @@ const { ipcMain } = require("electron");
 const ev = require("../utils/events");
 
 class EventManager {
-  constructor(stats, imageManager, store) {
+  constructor(stats, imageManager, store, exitAppFunc) {
     this.stats = stats;
     this.imageManager = imageManager;
     this.store = store;
+    this.exitAppFunc = exitAppFunc;
   }
 
   /**
@@ -34,7 +35,7 @@ class EventManager {
      * Exit app
      */
     ipcMain.on(ev.EXIT_APP, () => {
-      app.exit();
+      this.exitAppFunc();
     });
 
     /**
