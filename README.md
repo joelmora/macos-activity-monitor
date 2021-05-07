@@ -1,12 +1,18 @@
-# macOS Activity Monitor
+# MacOS Activity Monitor
 
-A free solutions to show information about your CPU and Memory usage right on your menu bar
+A free solution to show information about your CPU and Memory usage right on your menu bar
 
 ## App Preview
-![top-bar](./images/top-bar.png)
 
-![screenshot1](./images/graphs.png)
-![screenshot2](./images/settings.png)
+### Toolbar
+![top-bar](https://user-images.githubusercontent.com/11574884/117376255-63587100-ae96-11eb-97ee-4c10588815f9.png)
+
+### Graph over time
+![graphs](https://user-images.githubusercontent.com/11574884/117376260-66536180-ae96-11eb-9aac-205125518d3d.png)
+
+
+### Settings
+![settings](https://user-images.githubusercontent.com/11574884/117376272-681d2500-ae96-11eb-8b99-8e03ef84984b.png)
 
 ## Download
 
@@ -17,7 +23,7 @@ You can download it from the [release](https://github.com/joelmora/macos-activit
 
 You can clone this repository, modify it and build it yourself, first you need to install all dependencies with: 
 ```
-$ yarn install
+$ yarn install-all
 ```
 
 Then you can use all scripts available:
@@ -27,16 +33,13 @@ $ yarn [command]
 
 ### Commands available:
 
-`electron-build`: Build the final app
+`package`: Build the final app
 
-`electron-start`: Start the electron app in dev mode
+`electron:start`: Start the electron app in dev mode
 
-`create-icon`: Grab the .png icon and transform it into an .icns icon
+`react:start`: Start the react app in dev mode
 
-`react-start`: Start the react app in dev mode
+`react:build`: Build the react app
 
-`react-build`: Build the react app
+`build-all`: Build the react/electron app
 
-`react-test`: Run tests
-
-`build-app"`: Build the react/electron app
