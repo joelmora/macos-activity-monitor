@@ -9,7 +9,7 @@
     "build": "react-scripts build"
   },
   "dependencies": {
-    "chart.js": "2.7.2",
+    "chart.js": "2.9.4",
     "chartjs-plugin-streaming": "^1.6.1",
     "hex-rgb": "^4.2.0",
     "moment": "^2.10.2",
