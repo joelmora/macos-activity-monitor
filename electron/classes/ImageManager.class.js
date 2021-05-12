@@ -52,13 +52,17 @@ class ImageManager {
   /**
    * Compact Version = title and % value vertically
    */
-  getCompactVersionIcons = async (icons) =>
+  getCompactVersionIcons = async (icons, scale = 1) =>
     icons.map(async (icon) => {
-      const jimpImg = await new Jimp(COMPACT_W, HEIGHT);
+      const widthScaled = COMPACT_W * scale;
+      const heightScaled = HEIGHT * scale;
+      const fontTitleSizeScaled = 8 * scale;
+      const fontValueSizeScaled = 13 * scale;
+      const jimpImg = await new Jimp(widthScaled, heightScaled);
 
       //bitmap fonts generated with https://github.com/libgdx/libgdx/wiki/Hiero
-      const fontTitle = await Jimp.loadFont(fontDir + "helvetica_8_b.fnt");
-      const fontValue = await Jimp.loadFont(fontDir + "helvetica_13.fnt");
+      const fontTitle = await Jimp.loadFont(fontDir + `helvetica_${fontTitleSizeScaled}_b.fnt`);
+      const fontValue = await Jimp.loadFont(fontDir + `helvetica_${fontValueSizeScaled}.fnt`);
 
       const value = icon.value.toString();
       let unit;
@@ -81,8 +85,15 @@ class ImageManager {
           break;
       }
 
-      jimpImg.print(fontTitle, 0, 2, { text: title, alignmentY: Jimp.VERTICAL_ALIGN_TOP }, COMPACT_W, HEIGHT);
-      jimpImg.print(fontValue, 0, 0, { text: value + unit, alignmentY: Jimp.VERTICAL_ALIGN_BOTTOM }, COMPACT_W, HEIGHT);
+      jimpImg.print(fontTitle, 0, 2, { text: title, alignmentY: Jimp.VERTICAL_ALIGN_TOP }, widthScaled, heightScaled);
+      jimpImg.print(
+        fontValue,
+        0,
+        0,
+        { text: value + unit, alignmentY: Jimp.VERTICAL_ALIGN_BOTTOM },
+        widthScaled,
+        heightScaled
+      );
 
       return jimpImg;
     });
@@ -111,10 +122,25 @@ class ImageManager {
     }
 
     const iconImages = await this.getCompactVersionIcons(icons);
+    const iconImages2x = await this.getCompactVersionIcons(icons, 2);
+    const iconImages3x = await this.getCompactVersionIcons(icons, 3);
+
+    await this.writePngimage(iconImages);
+    await this.writePngimage(iconImages2x, 2);
+    await this.writePngimage(iconImages3x, 3);
+
+    //set icons on tray
+    this.setTrayImage(path.join(this.tempPath, "iconTemplate.png"));
+  };
+
+  writePngimage = async (iconImages, scale = 1) => {
+    const widthScaled = COMPACT_W * scale;
+    const heightScaled = HEIGHT * scale;
+    const spaceScaled = SPACE_W * scale;
 
     //grab all icons (cpu, mem, etc) and merge into one image
-    const totalWidth = iconImages.length * COMPACT_W + (iconImages.length - 1) * SPACE_W;
-    let finalIcon = await new Jimp(totalWidth, HEIGHT);
+    const totalWidth = iconImages.length * widthScaled + (iconImages.length - 1) * spaceScaled;
+    let finalIcon = await new Jimp(totalWidth, heightScaled);
     let x = 0;
 
     for (let i = 0; i < iconImages.length; i++) {
@@ -122,17 +148,17 @@ class ImageManager {
 
       //add space between attributes
       if (i > 0) {
-        x += SPACE_W;
+        x += spaceScaled;
       }
 
       finalIcon = await finalIcon.composite(attrIcon, x, 0);
-      x += COMPACT_W;
+
+      x += widthScaled;
     }
 
-    await finalIcon.writeAsync(path.join(this.tempPath, "iconTemplate.png"));
+    const suffix = scale === 1 ? "" : `@${scale}x`;
 
-    //set icons on tray
-    this.setTrayImage(path.join(this.tempPath, "iconTemplate.png"));
+    await finalIcon.writeAsync(path.join(this.tempPath, `iconTemplate${suffix}.png`));
   };
 
   /**
