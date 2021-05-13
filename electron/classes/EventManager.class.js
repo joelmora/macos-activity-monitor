@@ -3,10 +3,11 @@ const { ipcMain } = require("electron");
 const ev = require("../utils/events");
 
 class EventManager {
-  constructor(stats, imageManager, store, exitAppFunc) {
+  constructor(stats, imageManager, store, setLaunchAtLoginFunc, exitAppFunc) {
     this.stats = stats;
     this.imageManager = imageManager;
     this.store = store;
+    this.setLaunchAtLoginFunc = setLaunchAtLoginFunc;
     this.exitAppFunc = exitAppFunc;
   }
 
@@ -70,7 +71,7 @@ class EventManager {
       //save settings on store
       Object.keys(settings).map((key) => {
         if (key === "launchOnLogin") {
-          enableDisableAutoStartup(settings[key]);
+          this.setLaunchAtLoginFunc(settings[key]);
         }
 
         this.store.set(key, settings[key]);

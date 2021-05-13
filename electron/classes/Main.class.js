@@ -85,8 +85,14 @@ class Main {
     this.eventManager.emitEvent(event, data);
   };
 
+  setLaunchAtLogin = (action) => {
+    app.setLoginItemSettings({
+      openAtLogin: action,
+    });
+  };
+
   exitApp = () => {
-    app.exit()
+    app.exit();
   };
 
   init = () => {
@@ -101,7 +107,7 @@ class Main {
       const imageManager = new ImageManager(this.setTrayImage, this.getStoreKey, app.getPath("temp"));
       const stats = new Stats(this.emitEvent, this.getStoreKey);
 
-      this.eventManager = new EventManager(stats, imageManager, this.store, this.exitApp);
+      this.eventManager = new EventManager(stats, imageManager, this.store, this.setLaunchAtLogin, this.exitApp);
       this.eventManager.listen();
 
       await imageManager.preloadAll();
