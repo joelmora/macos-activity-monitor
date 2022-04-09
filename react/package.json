@@ -12,7 +12,7 @@
     "chart.js": "2.7.2",
     "chartjs-plugin-streaming": "^1.6.1",
     "hex-rgb": "^4.2.0",
-    "moment": "^2.10.2",
+    "moment": "^2.29.2",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-chartjs-2": "^2.7.4",
