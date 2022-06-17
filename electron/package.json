@@ -22,7 +22,7 @@
     "jimp": "^0.16.1"
   },
   "devDependencies": {
-    "electron": "11.2.1",
+    "electron": "15.5.5",
     "png2icns": "^0.0.1"
   },
   "browserslist": [
